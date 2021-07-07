@@ -1,14 +1,27 @@
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import stages.StageDecode
+import stages.StageFetch
+import utils.convertBytesToUInt
 import java.util.*
+import javax.inject.Inject
 import kotlin.concurrent.fixedRateTimer
 
-private val _clock = MutableStateFlow(0)
-val clock = _clock.asStateFlow()
+@Inject
+lateinit var stageFetch: StageFetch
+
+@Inject
+lateinit var stageDecode: StageDecode
 
 fun main(args: Array<String>) {
-    showMenu()
+    //showMenu()
+
+    val x = BitSet(32)
+    x.set(0, 8, true)
+    val y = x.toByteArray()
+
+    println(convertBytesToUInt(y?.toList()!!))
 }
 
 fun showMenu() {
@@ -48,9 +61,10 @@ fun showClockLengthMenu() {
     showMenu()
 }
 
-fun startClock(){
-    fixedRateTimer(startAt = Calendar.getInstance().time, period = 1){
-        ++_clock.value
+fun startClock() {
+    fixedRateTimer(startAt = Calendar.getInstance().time, period = 1) {
+        stageFetch.fetchFromInstructionMemory()
+        stageDecode.decodeInstruction()
     }
 }
 

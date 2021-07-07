@@ -18,4 +18,8 @@ class IFIDRegister @Inject constructor() {
         IFIDRegister.instruction = inst
     }
 
+    fun getInstruction() = instruction
+
+    fun getNextPC() = nextPC
+
 }

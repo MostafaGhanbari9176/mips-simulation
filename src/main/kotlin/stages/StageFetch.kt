@@ -1,10 +1,5 @@
 package stages
 
-import clock
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import model.PCSource
 import pipline_registers.EXMEMRegister
 import pipline_registers.IFIDRegister
@@ -20,22 +15,14 @@ class StageFetch() {
     lateinit var exMemRegister: EXMEMRegister
 
     @Inject
-    lateinit var ifIDRegister:IFIDRegister
+    lateinit var ifIDRegister: IFIDRegister
 
     companion object {
         private var PC: Int = 0
         private val instructionMemory = mutableListOf<BitSet>()
     }
 
-    init {
-        CoroutineScope(IO).launch {
-            clock.collect { _ ->
-                fetchFromInstructionMemory()
-            }
-        }
-    }
-
-    private fun fetchFromInstructionMemory() {
+    fun fetchFromInstructionMemory() {
         val instruction = instructionMemory[PC]
 
         PC = when (stageMemory.pcSource()) {

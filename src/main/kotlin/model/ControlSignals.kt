@@ -10,11 +10,12 @@ enum class WriteBackDestination{
     ITypeDestination
 }
 
-enum class ALUOperand{
+enum class ALUOperator{
     Add,
     Sub,
     OR,
-    And
+    And,
+    SLT
 }
 
 enum class RFWritePortSource{
