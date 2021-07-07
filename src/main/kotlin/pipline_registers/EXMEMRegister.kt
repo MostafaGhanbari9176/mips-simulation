@@ -54,6 +54,18 @@ class EXMEMRegister @Inject constructor() {
         branchAddress = address
     }
 
+    fun getMemWriteFlag() = memoryWrite
+
+    fun getALUResult() = aluResult
+
+    fun getMemWriteData() = readPortTwoOfRF
+
+    fun getMemReadFlag() = memoryRead
+
+    fun getIsBranchFlag() = isBranch
+
+    fun getZeroFlag() = aluZeroFlag
+
 }
 
 

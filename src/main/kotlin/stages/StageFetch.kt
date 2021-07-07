@@ -25,7 +25,7 @@ class StageFetch() {
     fun fetchFromInstructionMemory() {
         val instruction = instructionMemory[PC]
 
-        PC = when (stageMemory.pcSource()) {
+        PC = when (getPCSource()) {
             PCSource.NextPC -> ++PC
             PCSource.Branch -> exMemRegister.getBranchAddress()
         }
@@ -34,6 +34,16 @@ class StageFetch() {
             storeNextPC(PC)
             storeInstruction(instruction)
         }
+    }
+
+    private fun getPCSource(): PCSource {
+        val isBranch = exMemRegister.getIsBranchFlag()
+        val zeroFlag = exMemRegister.getZeroFlag()
+
+        return if (isBranch && zeroFlag)
+            PCSource.Branch
+        else
+            PCSource.NextPC
     }
 
 }
