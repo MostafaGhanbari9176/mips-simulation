@@ -16,60 +16,86 @@ class IDEXRegister @Inject constructor() {
         private var aluOperator = ALUOperator.Add
         private var aluSource = ALUSource.ReadPortTwoOFRF
         private var nextPC = 0
-        private var readPortOneOfRF:Int = 0
-        private var readPortTwoOfRF:Int = 0
-        private var instructionImmediateSection:Int = 0
+        private var readPortOneOfRF: Int = 0
+        private var readPortTwoOfRF: Int = 0
+        private var instructionImmediateSection: Int = 0
         private var ITypeDestination = 0
         private var RTypeDestination = 0
     }
 
-    fun storeOperands(operandOne:Int, operandTwo:Int){
+    fun storeOperands(operandOne: Int, operandTwo: Int) {
         readPortOneOfRF = operandOne
         readPortTwoOfRF = operandTwo
     }
 
-    fun storeImmediate(data:Int) {
+    fun storeImmediate(data: Int) {
         instructionImmediateSection = data
     }
 
-    fun storeITypeDestination(data:Int){
+    fun storeITypeDestination(data: Int) {
         ITypeDestination = data
     }
 
-    fun storeRTypeDestination(data:Int){
+    fun storeRTypeDestination(data: Int) {
         RTypeDestination = data
     }
 
-    fun storeNextPC(pc:Int){
+    fun storeNextPC(pc: Int) {
         nextPC = pc
     }
 
-    fun storeALUSource(source: ALUSource){
+    fun storeALUSource(source: ALUSource) {
         aluSource = source
     }
 
-    fun storeALUOperator(operator:ALUOperator){
+    fun storeALUOperator(operator: ALUOperator) {
         aluOperator = operator
     }
 
-    fun storeWriteBackDestination(destination:WriteBackDestination){
+    fun storeWriteBackDestination(destination: WriteBackDestination) {
         writeBackDestination = destination
     }
 
-    fun storeIsBranchFlag(itIs:Boolean){
+    fun storeIsBranchFlag(itIs: Boolean) {
         isBranch = itIs
     }
 
-    fun storeMemWriteFlag(write:Boolean){
+    fun storeMemWriteFlag(write: Boolean) {
         memoryWrite = write
     }
 
-    fun storeMemReadFlag(read:Boolean){
+    fun storeMemReadFlag(read: Boolean) {
         memoryRead = read
     }
 
-    fun storeWritingOnRegisterFlag(write:Boolean){
+    fun storeWritingOnRegisterFlag(write: Boolean) {
         registerWrite = write
     }
+
+    fun getReadPortOneDataOfRF() = readPortOneOfRF
+
+    fun getReadPortTwoDataOfRF() = readPortTwoOfRF
+
+    fun getImmediateData() = instructionImmediateSection
+
+    fun getAluSource() = aluSource
+
+    fun getALUOperator() = aluOperator
+
+    fun getRegisterDestination() = writeBackDestination
+
+    fun getRTypeDestination() = RTypeDestination
+
+    fun getITypeDestination() = ITypeDestination
+
+    fun getNextPC() = nextPC
+
+    fun getIsBranchFlag() = isBranch
+
+    fun getMemWriteFlag() = memoryWrite
+
+    fun getMemReadFlag() = memoryRead
+
+    fun getWritinOnRFFlag() = registerWrite
 }
 

@@ -2,6 +2,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import stages.StageDecode
+import stages.StageExecute
 import stages.StageFetch
 import utils.convertBytesToUInt
 import java.util.*
@@ -13,6 +14,9 @@ lateinit var stageFetch: StageFetch
 
 @Inject
 lateinit var stageDecode: StageDecode
+
+@Inject
+lateinit var stageExecute: StageExecute
 
 fun main(args: Array<String>) {
     //showMenu()
@@ -65,6 +69,7 @@ fun startClock() {
     fixedRateTimer(startAt = Calendar.getInstance().time, period = 1) {
         stageFetch.fetchFromInstructionMemory()
         stageDecode.decodeInstruction()
+        stageExecute.executeInstruction()
     }
 }
 
