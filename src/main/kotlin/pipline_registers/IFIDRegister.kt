@@ -1,14 +1,21 @@
 package pipline_registers
 
-class IFIDRegister {
+import java.util.*
+import javax.inject.Inject
+
+class IFIDRegister @Inject constructor() {
 
     companion object{
         private var nextPC:Int = 0
-        private val instruction = mutableListOf<Byte>()
+        private var instruction = BitSet(32)
     }
 
-    fun setNextPC(nextPC:Int){
+    fun storeNextPC(nextPC:Int){
         IFIDRegister.nextPC = nextPC
+    }
+
+    fun storeInstruction(inst:BitSet){
+        IFIDRegister.instruction = inst
     }
 
 }

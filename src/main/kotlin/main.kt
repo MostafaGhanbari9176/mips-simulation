@@ -1,7 +1,11 @@
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import java.util.*
+import kotlin.concurrent.fixedRateTimer
 
-val clock = MutableStateFlow(0)
+private val _clock = MutableStateFlow(0)
+val clock = _clock.asStateFlow()
 
 fun main(args: Array<String>) {
     showMenu()
@@ -44,5 +48,10 @@ fun showClockLengthMenu() {
     showMenu()
 }
 
+fun startClock(){
+    fixedRateTimer(startAt = Calendar.getInstance().time, period = 1){
+        ++_clock.value
+    }
+}
 
 

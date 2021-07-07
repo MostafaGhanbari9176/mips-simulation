@@ -21,3 +21,8 @@ enum class RFWritePortSource{
     AluResult,
     DataMemoryOutPut
 }
+
+enum class PCSource{
+    NextPC,
+    Branch
+}

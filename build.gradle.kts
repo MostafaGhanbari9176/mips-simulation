@@ -14,6 +14,8 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
+    implementation("com.google.dagger:dagger:2.37")
+    annotationProcessor("com.google.dagger:dagger-compiler:2.37")
     testImplementation(kotlin("test-junit"))
 }
 
