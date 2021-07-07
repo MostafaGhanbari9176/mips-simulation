@@ -19,13 +19,7 @@ lateinit var stageDecode: StageDecode
 lateinit var stageExecute: StageExecute
 
 fun main(args: Array<String>) {
-    //showMenu()
-
-    val x = BitSet(32)
-    x.set(0, 8, true)
-    val y = x.toByteArray()
-
-    println(convertBytesToUInt(y?.toList()!!))
+    showMenu()
 }
 
 fun showMenu() {

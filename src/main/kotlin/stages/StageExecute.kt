@@ -58,6 +58,9 @@ class StageExecute @Inject constructor() {
         //specify writing on register flag
         val writingOnRegister = iDEXRegister.getWritinOnRFFlag()
         eXMEMRegister.storeWritingOnRegisterFlag(writingOnRegister)
+        //specify write port source
+        val writePortSource = iDEXRegister.getWritePortSource()
+        eXMEMRegister.storeRegisterWritePortSource(writePortSource)
     }
 
     private fun generateZeroFlag() {

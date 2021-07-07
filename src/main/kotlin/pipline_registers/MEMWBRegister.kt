@@ -17,4 +17,25 @@ class MEMWBRegister @Inject constructor() {
 
     fun getRegisterDestination() = registerDestination
 
+    fun storeDataMemOutPut(data:Int){
+        dataMemoryOutPut = data
+    }
+
+    fun storeRegisterDestination(destination: Int) {
+        registerDestination = destination
+    }
+
+    fun storeALUResult(result: Int) {
+        aluResult = result
+    }
+
+    fun storeRegisterWriteFlag(store: Boolean) {
+        registerWrite = store
+    }
+
+    fun storeRFStorePortSource(source:RFWritePortSource){
+        rfWritePortSource = source
+    }
+
 }
+

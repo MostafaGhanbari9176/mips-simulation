@@ -1,5 +1,6 @@
 package pipline_registers
 
+import model.RFWritePortSource
 import javax.inject.Inject
 
 class EXMEMRegister @Inject constructor() {
@@ -14,6 +15,7 @@ class EXMEMRegister @Inject constructor() {
         private var aluResult = 0
         private var readPortTwoOfRF = 0
         private var registerDestination = 0
+        private var rfWritePortSource = RFWritePortSource.AluResult
     }
 
     fun getBranchAddress() = branchAddress
@@ -65,6 +67,16 @@ class EXMEMRegister @Inject constructor() {
     fun getIsBranchFlag() = isBranch
 
     fun getZeroFlag() = aluZeroFlag
+
+    fun getReigsterDestination() = registerDestination
+
+    fun getRegisterWriteFalg() = registerWrite
+
+    fun storeRegisterWritePortSource(source: RFWritePortSource) {
+        rfWritePortSource = source
+    }
+
+    fun getWritePortSource() = rfWritePortSource
 
 }
 

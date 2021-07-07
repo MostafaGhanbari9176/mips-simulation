@@ -2,6 +2,7 @@ package pipline_registers
 
 import model.ALUOperator
 import model.ALUSource
+import model.RFWritePortSource
 import model.WriteBackDestination
 import javax.inject.Inject
 
@@ -21,6 +22,7 @@ class IDEXRegister @Inject constructor() {
         private var instructionImmediateSection: Int = 0
         private var ITypeDestination = 0
         private var RTypeDestination = 0
+        private var rfWritePortSource = RFWritePortSource.AluResult
     }
 
     fun storeOperands(operandOne: Int, operandTwo: Int) {
@@ -97,5 +99,11 @@ class IDEXRegister @Inject constructor() {
     fun getMemReadFlag() = memoryRead
 
     fun getWritinOnRFFlag() = registerWrite
+
+    fun storeRegisterWritePortSource(source: RFWritePortSource) {
+        rfWritePortSource = source
+    }
+
+    fun getWritePortSource() = rfWritePortSource
 }
 

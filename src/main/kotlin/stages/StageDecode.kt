@@ -2,6 +2,7 @@ package stages
 
 import model.ALUOperator
 import model.ALUSource
+import model.RFWritePortSource
 import model.WriteBackDestination
 import pipline_registers.IDEXRegister
 import pipline_registers.IFIDRegister
@@ -112,6 +113,13 @@ class StageDecode {
         idEXRegister.storeMemWriteFlag(opCode == 0b101011)
         //specify writing instructions
         idEXRegister.storeWritingOnRegisterFlag(opCode != 0b000010)
+        //specify register write data source
+        idEXRegister.storeRegisterWritePortSource(
+            if (opCode == 0)
+                RFWritePortSource.AluResult
+            else
+                RFWritePortSource.DataMemoryOutPut
+        )
     }
 
 }
