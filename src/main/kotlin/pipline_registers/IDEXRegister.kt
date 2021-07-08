@@ -5,9 +5,8 @@ import model.ALUSource
 import model.RFWritePortSource
 import model.WriteBackDestination
 import java.util.*
-import javax.inject.Inject
 
-class IDEXRegister @Inject constructor() {
+class IDEXRegister {
 
     companion object {
         private var registerWrite = false

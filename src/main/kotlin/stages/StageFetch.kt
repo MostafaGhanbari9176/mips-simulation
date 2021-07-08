@@ -4,23 +4,20 @@ import model.ALUOperator
 import model.PCSource
 import pipline_registers.EXMEMRegister
 import pipline_registers.IFIDRegister
+import utils.stringToBitSet
 import java.util.*
-import javax.inject.Inject
 
-class StageFetch @Inject constructor() {
+class StageFetch {
 
-    @Inject
-    lateinit var exMemRegister: EXMEMRegister
-
-    @Inject
-    lateinit var ifIDRegister: IFIDRegister
+    private val exMemRegister = EXMEMRegister()
+    private val ifIDRegister = IFIDRegister()
 
     companion object {
         private var PC: Int = 0
         private val instructionMemory = mutableListOf<BitSet>()
     }
 
-    fun fetchFromInstructionMemory(programIsEnd:() -> Unit) {
+    fun fetchFromInstructionMemory(programIsEnd: () -> Unit) {
         val instruction = instructionMemory[PC]
 
         if (!programIsEnd(instruction)) {
@@ -33,7 +30,7 @@ class StageFetch @Inject constructor() {
                 storeNextPC(PC)
                 storeInstruction(instruction)
             }
-        }else
+        } else
             programIsEnd()
     }
 
@@ -72,14 +69,6 @@ class StageFetch @Inject constructor() {
         instructions.forEach { inst ->
             instructionMemory.add(stringToBitSet(inst))
         }
-    }
-
-    fun stringToBitSet(data: String): BitSet {
-        val result = BitSet(32)
-        for (i in data.indices) {
-            result.set(i, data[i] == '1')
-        }
-        return result
     }
 
 }

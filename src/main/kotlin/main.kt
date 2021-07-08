@@ -1,23 +1,14 @@
 import model.ALUOperator
 import stages.*
+import utils.stringToBitSet
 import java.util.*
-import javax.inject.Inject
 import kotlin.concurrent.fixedRateTimer
 
-@Inject
-lateinit var stageFetch: StageFetch
-
-@Inject
-lateinit var stageDecode: StageDecode
-
-@Inject
-lateinit var stageExecute: StageExecute
-
-@Inject
-lateinit var stageMemory: StageMemory
-
-@Inject
-lateinit var stageWriteBack: StageWriteBack
+private val stageFetch = StageFetch()
+private val stageDecode = StageDecode()
+private val stageExecute = StageExecute()
+private val stageMemory = StageMemory()
+private val stageWriteBack = StageWriteBack()
 
 private var aluOperator: ALUOperator = ALUOperator.Add
 
@@ -95,7 +86,7 @@ fun readOperands() {
 
             loadDataMemory(data1, data2)
             loadALUInstructionMemory()
-
+            startClock()
             return
         }
     }

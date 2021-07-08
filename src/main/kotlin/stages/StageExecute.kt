@@ -6,15 +6,11 @@ import model.WriteBackDestination
 import pipline_registers.EXMEMRegister
 import pipline_registers.IDEXRegister
 import utils.convertBytesToInt
-import javax.inject.Inject
 
-class StageExecute @Inject constructor() {
+class StageExecute {
 
-    @Inject
-    lateinit var iDEXRegister: IDEXRegister
-
-    @Inject
-    lateinit var eXMEMRegister: EXMEMRegister
+    private val iDEXRegister = IDEXRegister()
+    private val eXMEMRegister = EXMEMRegister()
 
     private var operandOne = 0
     private var operandTwo = 0
@@ -33,7 +29,7 @@ class StageExecute @Inject constructor() {
         val _opCode = instruction[26, 32].toByteArray().toList()
         val opCode = convertBytesToInt(_opCode)
 
-        if(opCode == 0)
+        if (opCode == 0)
             applyOperator()
         else
             generateMemoryAddress()

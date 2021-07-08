@@ -2,12 +2,10 @@ package stages
 
 import model.RFWritePortSource
 import pipline_registers.MEMWBRegister
-import javax.inject.Inject
 
-class StageWriteBack @Inject constructor() {
+class StageWriteBack {
 
-    @Inject
-    lateinit var mEMWBRegister: MEMWBRegister
+    private val mEMWBRegister = MEMWBRegister()
 
     fun getWriteBackData(): Int {
         val registerWriteSource = mEMWBRegister.getRFStorePortSource()

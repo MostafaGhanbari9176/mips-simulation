@@ -1,9 +1,8 @@
 package pipline_registers
 
 import model.RFWritePortSource
-import javax.inject.Inject
 
-class EXMEMRegister @Inject constructor() {
+class EXMEMRegister {
 
     companion object {
         private var registerWrite = false

@@ -1,9 +1,8 @@
 package pipline_registers
 
 import java.util.*
-import javax.inject.Inject
 
-class IFIDRegister @Inject constructor() {
+class IFIDRegister {
 
     companion object{
         private var nextPC:Int = 0

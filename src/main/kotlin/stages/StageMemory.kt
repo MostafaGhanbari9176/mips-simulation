@@ -3,15 +3,11 @@ package stages
 import model.PCSource
 import pipline_registers.EXMEMRegister
 import pipline_registers.MEMWBRegister
-import javax.inject.Inject
 
-class StageMemory @Inject constructor() {
+class StageMemory {
 
-    @Inject
-    lateinit var eXMEMRegister: EXMEMRegister
-
-    @Inject
-    lateinit var mEMWBRegister: MEMWBRegister
+    private val eXMEMRegister = EXMEMRegister()
+    private val mEMWBRegister = MEMWBRegister()
 
     companion object {
         private val dataMemory = mutableListOf<Int>()

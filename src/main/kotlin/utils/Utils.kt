@@ -40,3 +40,12 @@ fun convertBytesToInt(data: List<Byte>): Int {
 
     return result
 }
+
+fun stringToBitSet(data: String): BitSet {
+    val result = BitSet(32)
+    for (i in data.indices) {
+        result.set(i, data[i] == '1')
+    }
+    return result
+}
+

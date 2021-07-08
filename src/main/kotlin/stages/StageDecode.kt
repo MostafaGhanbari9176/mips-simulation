@@ -10,21 +10,13 @@ import pipline_registers.MEMWBRegister
 import utils.convertBytesToInt
 import utils.convertBytesToUInt
 import java.util.*
-import javax.inject.Inject
 
-class StageDecode @Inject constructor() {
+class StageDecode {
 
-    @Inject
-    lateinit var ifIDRegister: IFIDRegister
-
-    @Inject
-    lateinit var idEXRegister: IDEXRegister
-
-    @Inject
-    lateinit var memWBRegister: MEMWBRegister
-
-    @Inject
-    lateinit var stageWriteBack: StageWriteBack
+    private val ifIDRegister = IFIDRegister()
+    private val idEXRegister = IDEXRegister()
+    private val memWBRegister = MEMWBRegister()
+    private val stageWriteBack = StageWriteBack()
 
     companion object {
         private val registerFile = Array<Int>(32) { 0 }
@@ -79,7 +71,7 @@ class StageDecode @Inject constructor() {
         val nextPC = ifIDRegister.getNextPC()
         idEXRegister.storeNextPC(nextPC)
         //separate op code
-        val _opCode = instruction[26, 32].toByteArray().toList()
+        val _opCode = instruction[26, 32].toByteArray().toList()//todo
         val opCode = convertBytesToInt(_opCode)
         if (opCode == 0) {
             //specify ALU source
