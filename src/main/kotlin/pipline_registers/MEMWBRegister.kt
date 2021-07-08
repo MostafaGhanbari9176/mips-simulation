@@ -37,5 +37,11 @@ class MEMWBRegister @Inject constructor() {
         rfWritePortSource = source
     }
 
+    fun getRFStorePortSource() = rfWritePortSource
+
+    fun getALUResult() = aluResult
+
+    fun getDataMemOutPut() = dataMemoryOutPut
+
 }
 
