@@ -11,7 +11,7 @@ class StageMemory @Inject constructor() {
     lateinit var eXMEMRegister: EXMEMRegister
 
     @Inject
-    lateinit var mEMWBRegister:MEMWBRegister
+    lateinit var mEMWBRegister: MEMWBRegister
 
     companion object {
         private val dataMemory = mutableListOf<Int>()
@@ -40,7 +40,7 @@ class StageMemory @Inject constructor() {
 
     private fun read() {
         val readFlag = eXMEMRegister.getMemReadFlag()
-        if(readFlag){
+        if (readFlag) {
             val memAddress = eXMEMRegister.getALUResult()
             val data = dataMemory[memAddress]
 
@@ -55,6 +55,14 @@ class StageMemory @Inject constructor() {
             val data = eXMEMRegister.getMemWriteData()
 
             dataMemory[memAddress] = data
+        }
+    }
+
+    fun loadDataMemory(datas: IntArray) {
+        dataMemory.clear()
+
+        datas.forEach { data ->
+            dataMemory.add(data)
         }
     }
 

@@ -12,7 +12,7 @@ import utils.convertBytesToUInt
 import java.util.*
 import javax.inject.Inject
 
-class StageDecode {
+class StageDecode @Inject constructor() {
 
     @Inject
     lateinit var ifIDRegister: IFIDRegister
