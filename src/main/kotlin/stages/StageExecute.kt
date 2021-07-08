@@ -5,6 +5,7 @@ import model.ALUSource
 import model.WriteBackDestination
 import pipline_registers.EXMEMRegister
 import pipline_registers.IDEXRegister
+import utils.convertBytesToInt
 import javax.inject.Inject
 
 class StageExecute @Inject constructor() {
@@ -20,10 +21,31 @@ class StageExecute @Inject constructor() {
 
     fun executeInstruction() {
         readOperands()
-        applyOperator()
+        checkInstructionType()
         generateZeroFlag()
         generateBranchAddress()
         fillExMEMRegister()
+    }
+
+    private fun checkInstructionType() {
+        val instruction = iDEXRegister.getInstruction()
+        //separate op code
+        val _opCode = instruction[26, 32].toByteArray().toList()
+        val opCode = convertBytesToInt(_opCode)
+
+        if(opCode == 0)
+            applyOperator()
+        else
+            generateMemoryAddress()
+    }
+
+    private fun generateMemoryAddress() {
+        val base = operandOne
+        val offset = iDEXRegister.getImmediateData()
+
+        val address = base + offset
+
+        eXMEMRegister.storeALUResult(address)
     }
 
     private fun generateBranchAddress() {

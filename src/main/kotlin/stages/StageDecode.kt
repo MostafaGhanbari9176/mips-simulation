@@ -120,6 +120,9 @@ class StageDecode {
             else
                 RFWritePortSource.DataMemoryOutPut
         )
+        //store instruction
+        val instruction = ifIDRegister.getInstruction()
+        idEXRegister.storeInstruction(instruction)
     }
 
 }

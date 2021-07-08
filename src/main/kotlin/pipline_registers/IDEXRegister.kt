@@ -4,6 +4,7 @@ import model.ALUOperator
 import model.ALUSource
 import model.RFWritePortSource
 import model.WriteBackDestination
+import java.util.*
 import javax.inject.Inject
 
 class IDEXRegister @Inject constructor() {
@@ -23,6 +24,7 @@ class IDEXRegister @Inject constructor() {
         private var ITypeDestination = 0
         private var RTypeDestination = 0
         private var rfWritePortSource = RFWritePortSource.AluResult
+        private var instruction:BitSet = BitSet(32)
     }
 
     fun storeOperands(operandOne: Int, operandTwo: Int) {
@@ -105,5 +107,11 @@ class IDEXRegister @Inject constructor() {
     }
 
     fun getWritePortSource() = rfWritePortSource
+
+    fun storeInstruction(inst:BitSet){
+        instruction = inst
+    }
+
+    fun getInstruction() = instruction
 }
 

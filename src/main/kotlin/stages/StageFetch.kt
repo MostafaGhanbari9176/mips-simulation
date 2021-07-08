@@ -29,7 +29,7 @@ class StageFetch() {
             PCSource.NextPC -> ++PC
             PCSource.Branch -> exMemRegister.getBranchAddress()
         }
-
+        //fill IF/ID register
         ifIDRegister.apply {
             storeNextPC(PC)
             storeInstruction(instruction)
