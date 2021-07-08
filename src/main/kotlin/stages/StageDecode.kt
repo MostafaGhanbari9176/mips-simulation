@@ -106,7 +106,7 @@ class StageDecode {
         //specify sw instruction
         idEXRegister.storeMemWriteFlag(opCode == "101011")
         //specify writing instructions
-        idEXRegister.storeWritingOnRegisterFlag(opCode != "000010")
+        idEXRegister.storeWritingOnRegisterFlag(opCode != "000010" && opCode != "101011")
         //specify register write data source
         idEXRegister.storeRegisterWritePortSource(
             if (opCode == "000000")

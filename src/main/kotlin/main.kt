@@ -1,16 +1,15 @@
 import model.ALUOperator
 import stages.*
-import utils.convertBinaryStringToInt
-import utils.convertBinaryStringToUInt
-import utils.substring
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
 
-private val stageFetch = StageFetch()
-private val stageDecode = StageDecode()
-private val stageExecute = StageExecute()
-private val stageMemory = StageMemory()
-private val stageWriteBack = StageWriteBack()
+var timer: Timer? = null
+private var stageFetch:StageFetch? = null
+private var stageDecode:StageDecode? = null
+private var stageExecute:StageExecute? = null
+private var stageMemory:StageMemory? = null
+private var stageWriteBack:StageWriteBack? = null
+var programIsEnd = false
 
 private var aluOperator: ALUOperator = ALUOperator.Add
 
@@ -83,12 +82,11 @@ fun readOperands() {
     if (separatorIndex != -1) {
         input = input!!.replace("o", "", ignoreCase = true)
         if (isDigitOnly(input)) {
-            val data1 = input.substring(0, separatorIndex).toInt()
-            val data2 = input.substring(separatorIndex - 1).toInt()
+            val data1 = (input as java.lang.String).substring(0, separatorIndex).toInt()
+            val data2 = input.substring(separatorIndex).toInt()
 
-            loadDataMemory(data1, data2)
-            loadALUInstructionMemory()
-            startClock()
+            startTestALUProgram(data1, data2)
+
             return
         }
     }
@@ -98,12 +96,20 @@ fun readOperands() {
 
 }
 
-fun loadDataMemory(vararg datas: Int) {
-    stageMemory.loadDataMemory(datas)
+fun startTestALUProgram(data1: Int, data2: Int) {
+    instantiateStages()
+
+    stageMemory?.loadDataMemory(data1, data2)
+    stageFetch?.loadALUInstructions(aluOperator)
+    startClock()
 }
 
-fun loadALUInstructionMemory() {
-    stageFetch.loadALUInstructions(aluOperator)
+fun instantiateStages() {
+    stageFetch = StageFetch()
+    stageDecode = StageDecode()
+    stageExecute = StageExecute()
+    stageMemory = StageMemory()
+    stageWriteBack = StageWriteBack()
 }
 
 private fun showFilePicker() {
@@ -122,22 +128,24 @@ private fun showClockLengthMenu() {
 }
 
 private fun startClock() {
-    fixedRateTimer(startAt = Calendar.getInstance().time, period = 1) {
-        stageFetch.fetchFromInstructionMemory {
+    timer = fixedRateTimer(startAt = Calendar.getInstance().time, period = 1) {
+        stageFetch?.fetchFromInstructionMemory {
             programIsEnd()
+            timer?.cancel()
         }
-        stageDecode.decodeInstruction()
-        stageExecute.executeInstruction()
-        stageMemory.applyMemWork()
+        stageDecode?.decodeInstruction()
+        stageExecute?.executeInstruction()
+        stageMemory?.applyMemWork()
         //stageWriteBack
     }
 }
 
 fun programIsEnd() {
-    val aluResult = stageMemory.readDataMEM(2)
+    val aluResult = stageMemory?.readDataMEM(2)
     println("=".repeat(35))
     println("Program Is End")
     println("ALU Result From MEM[2] : $aluResult")
+   // showMenu()
 }
 
 private fun validateSelectedMenu(input: String?, validRange: IntRange, menu: () -> Unit): Boolean {

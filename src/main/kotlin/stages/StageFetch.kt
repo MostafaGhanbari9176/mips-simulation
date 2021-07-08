@@ -20,18 +20,15 @@ class StageFetch {
         if (programIsEnd(instruction))
             programIsEnd()
 
-        if (!programIsEnd(instruction)) {
-            PC = when (getPCSource()) {
-                PCSource.NextPC -> ++PC
-                PCSource.Branch -> exMemRegister.getBranchAddress()
-            }
-            //fill IF/ID register
-            ifIDRegister.apply {
-                storeNextPC(PC)
-                storeInstruction(instruction)
-            }
-        } else
-            programIsEnd()
+        PC = when (getPCSource()) {
+            PCSource.NextPC -> ++PC
+            PCSource.Branch -> exMemRegister.getBranchAddress()
+        }
+        //fill IF/ID register
+        ifIDRegister.apply {
+            storeNextPC(PC)
+            storeInstruction(instruction)
+        }
     }
 
     private fun programIsEnd(instruction: String): Boolean {
@@ -54,6 +51,7 @@ class StageFetch {
         val instructions = listOf<String>(
             "10001100000010000000000000000000",
             "10001100000010010000000000000001",
+            "00000000000000000000000000000000",
             "00000001001010000101000000" +
                     when (aluOperator) {
                         ALUOperator.Add -> "100000"
@@ -62,6 +60,7 @@ class StageFetch {
                         ALUOperator.And -> "100100"
                         ALUOperator.SLT -> "101010"
                     },
+            "00000000000000000000000000000000",
             "10101100000010100000000000000010",
             "11111111111111111111111111111111"
         )

@@ -56,7 +56,7 @@ class StageMemory {
         }
     }
 
-    fun loadDataMemory(datas: IntArray) {
+    fun loadDataMemory(vararg datas: Int) {
         dataMemory.clear()
 
         datas.forEach { data ->
