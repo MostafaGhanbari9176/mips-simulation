@@ -23,7 +23,7 @@ class IDEXRegister {
         private var ITypeDestination = 0
         private var RTypeDestination = 0
         private var rfWritePortSource = RFWritePortSource.AluResult
-        private var instruction:BitSet = BitSet(32)
+        private var instruction:String = "00000000000000000000000000000000"
     }
 
     fun storeOperands(operandOne: Int, operandTwo: Int) {
@@ -107,7 +107,7 @@ class IDEXRegister {
 
     fun getWritePortSource() = rfWritePortSource
 
-    fun storeInstruction(inst:BitSet){
+    fun storeInstruction(inst:String){
         instruction = inst
     }
 

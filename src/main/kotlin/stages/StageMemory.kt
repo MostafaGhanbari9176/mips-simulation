@@ -49,8 +49,10 @@ class StageMemory {
         if (writeFlag) {
             val memAddress = eXMEMRegister.getALUResult()
             val data = eXMEMRegister.getMemWriteData()
-
-            dataMemory[memAddress] = data
+            if (memAddress > dataMemory.size - 1)
+                dataMemory.add(data)
+            else
+                dataMemory[memAddress] = data
         }
     }
 

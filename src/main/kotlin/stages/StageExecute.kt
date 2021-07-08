@@ -5,7 +5,8 @@ import model.ALUSource
 import model.WriteBackDestination
 import pipline_registers.EXMEMRegister
 import pipline_registers.IDEXRegister
-import utils.convertBytesToInt
+import utils.convertBinaryStringToInt
+import utils.substring
 
 class StageExecute {
 
@@ -26,8 +27,8 @@ class StageExecute {
     private fun checkInstructionType() {
         val instruction = iDEXRegister.getInstruction()
         //separate op code
-        val _opCode = instruction[26, 32].toByteArray().toList()
-        val opCode = convertBytesToInt(_opCode)
+        val _opCode = instruction.substring(26, 32)
+        val opCode = convertBinaryStringToInt(_opCode)
 
         if (opCode == 0)
             applyOperator()

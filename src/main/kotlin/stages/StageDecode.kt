@@ -7,8 +7,9 @@ import model.WriteBackDestination
 import pipline_registers.IDEXRegister
 import pipline_registers.IFIDRegister
 import pipline_registers.MEMWBRegister
-import utils.convertBytesToInt
-import utils.convertBytesToUInt
+import utils.convertBinaryStringToInt
+import utils.convertBinaryStringToUInt
+import utils.substring
 import java.util.*
 
 class StageDecode {
@@ -26,29 +27,29 @@ class StageDecode {
         //reading instruction from pipeline register(IF/ID)
         val instruction = ifIDRegister.getInstruction()
         //separate operands address from instruction
-        val readPortOneAddress = instruction[21, 26].toByteArray().toList()
-        val readPortTwoAddress = instruction[16, 21].toByteArray().toList()
+        val readPortOneAddress = instruction.substring(21, 26)
+        val readPortTwoAddress = instruction.substring(16, 21)
         //fetching operands value from register file
-        val operandOne = registerFile[convertBytesToUInt(readPortOneAddress)]
-        val operandTwo = registerFile[convertBytesToUInt(readPortTwoAddress)]
+        val operandOne = registerFile[convertBinaryStringToUInt(readPortOneAddress)]
+        val operandTwo = registerFile[convertBinaryStringToUInt(readPortTwoAddress)]
         //storing operands to pipeline register(ID/EX)
         idEXRegister.storeOperands(operandOne, operandTwo)
 
         //separate immediate value from instruction
-        val _immediate = instruction[0, 16].toByteArray().toList()
-        val immediate = convertBytesToInt(_immediate)
+        val _immediate = instruction.substring(0, 16)
+        val immediate = convertBinaryStringToInt(_immediate)
         //storing immediate value to pipeline register(ID/EX)
         idEXRegister.storeImmediate(immediate)
 
         //separate i type destination register address from instruction
-        val _iTypeDestination = instruction[16, 21].toByteArray().toList()
-        val iTypeDestination = convertBytesToUInt(_iTypeDestination)
+        val _iTypeDestination = instruction.substring(16, 21)
+        val iTypeDestination = convertBinaryStringToUInt(_iTypeDestination)
         //storing i type destination address to pipeline register(ID/EX)
         idEXRegister.storeITypeDestination(iTypeDestination)
 
         //separate r type destination register address from instruction
-        val _rTypeDestination = instruction[11, 16].toByteArray().toList()
-        val rTypeDestination = convertBytesToUInt(_rTypeDestination)
+        val _rTypeDestination = instruction.substring(11, 16)
+        val rTypeDestination = convertBinaryStringToUInt(_rTypeDestination)
         //storing i type destination address to pipeline register(ID/EX)
         idEXRegister.storeRTypeDestination(rTypeDestination)
 
@@ -67,13 +68,12 @@ class StageDecode {
         }
     }
 
-    private fun fillIDEXRegister(instruction: BitSet) {
+    private fun fillIDEXRegister(instruction: String) {
         val nextPC = ifIDRegister.getNextPC()
         idEXRegister.storeNextPC(nextPC)
         //separate op code
-        val _opCode = instruction[26, 32].toByteArray().toList()//todo
-        val opCode = convertBytesToInt(_opCode)
-        if (opCode == 0) {
+        val opCode = instruction.substring(26, 32)
+        if (opCode == "000000") {
             //specify ALU source
             idEXRegister.storeALUSource(ALUSource.ReadPortTwoOFRF)
             //specify Register Destination
@@ -85,29 +85,31 @@ class StageDecode {
             idEXRegister.storeWriteBackDestination(WriteBackDestination.ITypeDestination)
         }
         //specify ALU operator
-        val functionCode = instruction[0, 6]
+        val functionCode = instruction.substring(0, 6)
         when (functionCode) {
-            BitSet(6).apply { set(5) } ->
+            "100000" ->
                 idEXRegister.storeALUOperator(ALUOperator.Add)
-            BitSet(6).apply { set(5);set(1) } ->
+            "100010" ->
                 idEXRegister.storeALUOperator(ALUOperator.Sub)
-            BitSet(6).apply { set(5);set(2);set(0) } ->
+            "100101" ->
                 idEXRegister.storeALUOperator(ALUOperator.OR)
-            BitSet(6).apply { set(5);set(1);set(3) } ->
+            "100100" ->
                 idEXRegister.storeALUOperator(ALUOperator.And)
+            "101010" ->
+                idEXRegister.storeALUOperator(ALUOperator.SLT)
         }
 
         //specify branch instruction
-        idEXRegister.storeIsBranchFlag(opCode == 4 || opCode == 5)
+        idEXRegister.storeIsBranchFlag(opCode == "000100" || opCode == "000101")
         //specify lw instruction
-        idEXRegister.storeMemReadFlag(opCode == 0b100011)
+        idEXRegister.storeMemReadFlag(opCode == "100011")
         //specify sw instruction
-        idEXRegister.storeMemWriteFlag(opCode == 0b101011)
+        idEXRegister.storeMemWriteFlag(opCode == "101011")
         //specify writing instructions
-        idEXRegister.storeWritingOnRegisterFlag(opCode != 0b000010)
+        idEXRegister.storeWritingOnRegisterFlag(opCode != "000010")
         //specify register write data source
         idEXRegister.storeRegisterWritePortSource(
-            if (opCode == 0)
+            if (opCode == "000000")
                 RFWritePortSource.AluResult
             else
                 RFWritePortSource.DataMemoryOutPut

@@ -4,8 +4,6 @@ import model.ALUOperator
 import model.PCSource
 import pipline_registers.EXMEMRegister
 import pipline_registers.IFIDRegister
-import utils.stringToBitSet
-import java.util.*
 
 class StageFetch {
 
@@ -14,11 +12,13 @@ class StageFetch {
 
     companion object {
         private var PC: Int = 0
-        private val instructionMemory = mutableListOf<BitSet>()
+        private val instructionMemory = mutableListOf<String>()
     }
 
     fun fetchFromInstructionMemory(programIsEnd: () -> Unit) {
         val instruction = instructionMemory[PC]
+        if (programIsEnd(instruction))
+            programIsEnd()
 
         if (!programIsEnd(instruction)) {
             PC = when (getPCSource()) {
@@ -34,8 +34,8 @@ class StageFetch {
             programIsEnd()
     }
 
-    private fun programIsEnd(instruction: BitSet): Boolean {
-        return instruction.toByteArray().all { b -> b == 0xff.toByte() }
+    private fun programIsEnd(instruction: String): Boolean {
+        return instruction.all { c -> c == '1' }
     }
 
     private fun getPCSource(): PCSource {
@@ -66,9 +66,8 @@ class StageFetch {
             "11111111111111111111111111111111"
         )
 
-        instructions.forEach { inst ->
-            instructionMemory.add(stringToBitSet(inst))
-        }
+        instructionMemory.addAll(instructions)
+
     }
 
 }

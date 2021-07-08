@@ -4,36 +4,36 @@ import java.util.*
 import kotlin.experimental.and
 
 /**
- * converting byteArray to UInt
+ * converting binary string to UInt
  *
  * @param [data] data for converting, msb byte must be store on index 0
  */
-fun convertBytesToUInt(data: List<Byte>): Int {
+fun convertBinaryStringToUInt(data: String): Int {
     var result = 0
 
-    data.forEach { b ->
-        result = (result shl 8) or b.toUByte().toInt()
+    data.forEach { c ->
+        result = (result shl 1) or c.toString().toInt()
     }
 
     return result
 }
 
 /**
- * converting byteArray to int
+ * converting binary string to int
  *
  * @param [data] data for converting, msb byte must be store on index 0
  */
-fun convertBytesToInt(data: List<Byte>): Int {
+fun convertBinaryStringToInt(data: String): Int {
     var result = 0
 
-    data.forEach { b ->
-        result = (result shl 8) or b.toUByte().toInt()
+    data.forEach { c ->
+        result = (result shl 1) or c.toString().toInt()
     }
 
     //sign extend for negative values
-    if ((data[0] and 0x80.toByte()) == 0x80.toByte()) {
+    if (data[0] == '1') {
         var operator = Int.MAX_VALUE
-        operator = operator shl 8 * data.size
+        operator = operator shl data.length
 
         result = operator or result
     }
@@ -41,11 +41,7 @@ fun convertBytesToInt(data: List<Byte>): Int {
     return result
 }
 
-fun stringToBitSet(data: String): BitSet {
-    val result = BitSet(32)
-    for (i in data.indices) {
-        result.set(i, data[i] == '1')
-    }
-    return result
+fun String.substring(s:Int, e:Int):String{
+    return (this as java.lang.String).substring(this.length - e, this.length - s)
 }
 

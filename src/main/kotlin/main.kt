@@ -1,6 +1,8 @@
 import model.ALUOperator
 import stages.*
-import utils.stringToBitSet
+import utils.convertBinaryStringToInt
+import utils.convertBinaryStringToUInt
+import utils.substring
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
 
