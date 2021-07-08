@@ -81,7 +81,7 @@ fun readOperands() {
 
     var input = readLine()
 
-    if(input == "exit"){
+    if (input == "exit") {
         showMenu()
         return
     }
@@ -93,7 +93,7 @@ fun readOperands() {
             val data1 = input.substring(0, separatorIndex).toInt()
             val data2 = input.substring(separatorIndex - 1).toInt()
 
-            loadDataMemory(data1,data2)
+            loadDataMemory(data1, data2)
             loadALUInstructionMemory()
 
             return
@@ -105,7 +105,7 @@ fun readOperands() {
 
 }
 
-fun loadDataMemory(vararg datas:Int) {
+fun loadDataMemory(vararg datas: Int) {
     stageMemory.loadDataMemory(datas)
 }
 
@@ -130,7 +130,9 @@ private fun showClockLengthMenu() {
 
 private fun startClock() {
     fixedRateTimer(startAt = Calendar.getInstance().time, period = 1) {
-        stageFetch.fetchFromInstructionMemory()
+        stageFetch.fetchFromInstructionMemory {
+            programIsEnd()
+        }
         stageDecode.decodeInstruction()
         stageExecute.executeInstruction()
         stageMemory.applyMemWork()
@@ -138,12 +140,20 @@ private fun startClock() {
     }
 }
 
+fun programIsEnd() {
+    val aluResult = stageMemory.readDataMEM(2)
+    println("=".repeat(35))
+    println("Program Is End")
+    println("ALU Result From MEM[2] : $aluResult")
+}
+
 private fun validateSelectedMenu(input: String?, validRange: IntRange, menu: () -> Unit): Boolean {
     val valid = !input.isNullOrEmpty() && input.all { c ->
-        c.isDigit() && validRange.contains(c.toInt())
+        c.isDigit() && validRange.contains(c.toString().toInt())
     }
 
     if (!valid) {
+        println(".".repeat(30))
         println("******* Please Inter Valid Menu Number *******")
         menu()
     }

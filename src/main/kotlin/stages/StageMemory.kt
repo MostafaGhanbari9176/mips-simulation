@@ -66,4 +66,6 @@ class StageMemory @Inject constructor() {
         }
     }
 
+    fun readDataMEM(address: Int) = dataMemory[address]
+
 }

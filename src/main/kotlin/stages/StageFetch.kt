@@ -10,9 +10,6 @@ import javax.inject.Inject
 class StageFetch @Inject constructor() {
 
     @Inject
-    lateinit var stageMemory: StageMemory
-
-    @Inject
     lateinit var exMemRegister: EXMEMRegister
 
     @Inject
@@ -23,18 +20,25 @@ class StageFetch @Inject constructor() {
         private val instructionMemory = mutableListOf<BitSet>()
     }
 
-    fun fetchFromInstructionMemory() {
+    fun fetchFromInstructionMemory(programIsEnd:() -> Unit) {
         val instruction = instructionMemory[PC]
 
-        PC = when (getPCSource()) {
-            PCSource.NextPC -> ++PC
-            PCSource.Branch -> exMemRegister.getBranchAddress()
-        }
-        //fill IF/ID register
-        ifIDRegister.apply {
-            storeNextPC(PC)
-            storeInstruction(instruction)
-        }
+        if (!programIsEnd(instruction)) {
+            PC = when (getPCSource()) {
+                PCSource.NextPC -> ++PC
+                PCSource.Branch -> exMemRegister.getBranchAddress()
+            }
+            //fill IF/ID register
+            ifIDRegister.apply {
+                storeNextPC(PC)
+                storeInstruction(instruction)
+            }
+        }else
+            programIsEnd()
+    }
+
+    private fun programIsEnd(instruction: BitSet): Boolean {
+        return instruction.toByteArray().all { b -> b == 0xff.toByte() }
     }
 
     private fun getPCSource(): PCSource {
