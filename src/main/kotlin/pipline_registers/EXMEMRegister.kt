@@ -1,6 +1,8 @@
 package pipline_registers
 
+import model.InstructionModel
 import model.RFWritePortSource
+import utils.stallInstruction
 
 class EXMEMRegister {
 
@@ -15,6 +17,7 @@ class EXMEMRegister {
         private var readPortTwoOfRF = 0
         private var rfWriteAddress = 0
         private var rfWritePortSource = RFWritePortSource.AluResult
+        private var instruction = stallInstruction
     }
 
     fun getBranchAddress() = branchAddress
@@ -76,6 +79,12 @@ class EXMEMRegister {
     }
 
     fun getWritePortSource() = rfWritePortSource
+
+    fun storeInstruction(inst: InstructionModel) {
+        instruction = inst
+    }
+
+    fun getInstruction() = instruction
 
 }
 

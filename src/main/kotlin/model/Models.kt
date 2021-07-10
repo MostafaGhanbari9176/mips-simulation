@@ -1,7 +1,7 @@
 package model
 
 data class RegisterFileModel(
-    val data: Int,
+    val data: Int = 0,
     val pendingInstructionId:Int = -1,
     var pending: Boolean = false
 )

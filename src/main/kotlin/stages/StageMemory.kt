@@ -31,6 +31,9 @@ class StageMemory {
         //storing register file write port source
         val writePortSource = eXMEMRegister.getWritePortSource()
         mEMWBRegister.storeRFStorePortSource(writePortSource)
+        //storing instruction
+        val instruction = eXMEMRegister.getInstruction()
+        mEMWBRegister.storeInstruction(instruction)
     }
 
     private fun read() {

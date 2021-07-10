@@ -33,6 +33,9 @@ class StageExecute {
             applyOperator()
         else
             generateMemoryAddress()
+
+        //store instruction
+        eXMEMRegister.storeInstruction(instruction)
     }
 
     private fun generateMemoryAddress() {
