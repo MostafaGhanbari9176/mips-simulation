@@ -1,9 +1,11 @@
 package stages
 
 import model.ALUOperator
+import model.InstructionModel
 import model.PCSource
 import pipline_registers.EXMEMRegister
 import pipline_registers.IFIDRegister
+import utils.stallInstruction
 
 class StageFetch {
 
@@ -12,23 +14,32 @@ class StageFetch {
 
     companion object {
         private var PC: Int = 0
-        private val instructionMemory = mutableListOf<String>()
+        private val instructionMemory = mutableListOf<InstructionModel>()
+        private var stall = false
     }
 
     fun fetchFromInstructionMemory(programIsEnd: () -> Unit) {
-        val instruction = instructionMemory[PC]
-        if (programIsEnd(instruction))
+        var instruction = instructionMemory[PC]
+        if (programIsEnd(instruction.inst))
             programIsEnd()
 
-        PC = when (getPCSource()) {
-            PCSource.NextPC -> ++PC
-            PCSource.Branch -> exMemRegister.getBranchAddress()
-        }
+        if (!stall) {
+            PC = when (getPCSource()) {
+                PCSource.NextPC -> ++PC
+                PCSource.Branch -> exMemRegister.getBranchAddress()
+            }
+        } else
+            instruction = stallInstruction
+
         //fill IF/ID register
         ifIDRegister.apply {
             storeNextPC(PC)
             storeInstruction(instruction)
         }
+    }
+
+    fun injectStall() {
+        stall = true
     }
 
     private fun programIsEnd(instruction: String): Boolean {
@@ -65,7 +76,11 @@ class StageFetch {
             "11111111111111111111111111111111"
         )
 
-        instructionMemory.addAll(instructions)
+        instructionMemory.addAll(
+            instructions.mapIndexed { index, inst ->
+                InstructionModel(inst, index)
+            }
+        )
 
     }
 

@@ -1,7 +1,10 @@
 package utils
 
+import model.InstructionModel
 import java.util.*
 import kotlin.experimental.and
+
+val stallInstruction = InstructionModel("00000000000000000000000000000000", -1)
 
 /**
  * converting binary string to UInt

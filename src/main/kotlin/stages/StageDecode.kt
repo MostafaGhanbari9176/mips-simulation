@@ -2,6 +2,7 @@ package stages
 
 import model.ALUOperator
 import model.ALUSource
+import model.InstructionModel
 import model.RFWritePortSource
 import pipline_registers.IDEXRegister
 import pipline_registers.IFIDRegister
@@ -25,8 +26,8 @@ class StageDecode {
         //reading instruction from pipeline register(IF/ID)
         val instruction = ifIDRegister.getInstruction()
         //separate operands address from instruction
-        val readPortOneAddress = instruction.substring(21, 26)
-        val readPortTwoAddress = instruction.substring(16, 21)
+        val readPortOneAddress = instruction.inst.substring(21, 26)
+        val readPortTwoAddress = instruction.inst.substring(16, 21)
         //fetching operands value from register file
         val operandOne = registerFile[convertBinaryStringToUInt(readPortOneAddress)]
         val operandTwo = registerFile[convertBinaryStringToUInt(readPortTwoAddress)]
@@ -34,7 +35,7 @@ class StageDecode {
         idEXRegister.storeOperands(operandOne, operandTwo)
 
         //separate immediate value from instruction
-        val _immediate = instruction.substring(0, 16)
+        val _immediate = instruction.inst.substring(0, 16)
         val immediate = convertBinaryStringToInt(_immediate)
         //storing immediate value to pipeline register(ID/EX)
         idEXRegister.storeImmediate(immediate)
@@ -46,16 +47,16 @@ class StageDecode {
         writeToRegister()
     }
 
-    private fun specifyRFWriteAddress(instruction: String): Int {
+    private fun specifyRFWriteAddress(instruction: InstructionModel): Int {
         //separate i type destination register address from instruction
-        val _iTypeDestination = instruction.substring(16, 21)
+        val _iTypeDestination = instruction.inst.substring(16, 21)
         val iTypeDestination = convertBinaryStringToUInt(_iTypeDestination)
         //separate r type destination register address from instruction
-        val _rTypeDestination = instruction.substring(11, 16)
+        val _rTypeDestination = instruction.inst.substring(11, 16)
         val rTypeDestination = convertBinaryStringToUInt(_rTypeDestination)
 
         //separate op code
-        val opCode = instruction.substring(26, 32)
+        val opCode = instruction.inst.substring(26, 32)
 
         return if (opCode == "000000")
             rTypeDestination
@@ -73,16 +74,16 @@ class StageDecode {
         }
     }
 
-    private fun fillIDEXRegister(instruction: String) {
+    private fun fillIDEXRegister(instruction: InstructionModel) {
         val nextPC = ifIDRegister.getNextPC()
         idEXRegister.storeNextPC(nextPC)
         //separate op code
-        val opCode = instruction.substring(26, 32)
+        val opCode = instruction.inst.substring(26, 32)
         //specify ALU source
         idEXRegister.storeALUSource(if (opCode == "000000") ALUSource.ReadPortTwoOFRF else ALUSource.Immediate)
 
         //specify ALU operator
-        val functionCode = instruction.substring(0, 6)
+        val functionCode = instruction.inst.substring(0, 6)
         when (functionCode) {
             "100000" ->
                 idEXRegister.storeALUOperator(ALUOperator.Add)

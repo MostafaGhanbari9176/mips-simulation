@@ -26,7 +26,7 @@ class StageExecute {
     private fun checkInstructionType() {
         val instruction = iDEXRegister.getInstruction()
         //separate op code
-        val _opCode = instruction.substring(26, 32)
+        val _opCode = instruction.inst.substring(26, 32)
         val opCode = convertBinaryStringToInt(_opCode)
 
         if (opCode == 0)

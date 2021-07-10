@@ -2,7 +2,9 @@ package pipline_registers
 
 import model.ALUOperator
 import model.ALUSource
+import model.InstructionModel
 import model.RFWritePortSource
+import utils.stallInstruction
 
 class IDEXRegister {
 
@@ -19,7 +21,7 @@ class IDEXRegister {
         private var instructionImmediateSection: Int = 0
         private var rfWriteAddress = 0
         private var rfWritePortSource = RFWritePortSource.AluResult
-        private var instruction:String = "00000000000000000000000000000000"
+        private var instruction = stallInstruction
     }
 
     fun storeOperands(operandOne: Int, operandTwo: Int) {
@@ -91,7 +93,7 @@ class IDEXRegister {
 
     fun getWritePortSource() = rfWritePortSource
 
-    fun storeInstruction(inst:String){
+    fun storeInstruction(inst: InstructionModel){
         instruction = inst
     }
 
