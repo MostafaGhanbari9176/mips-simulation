@@ -1,6 +1,5 @@
 package stages
 
-import model.PCSource
 import pipline_registers.EXMEMRegister
 import pipline_registers.MEMWBRegister
 
@@ -20,9 +19,9 @@ class StageMemory {
     }
 
     private fun fillMEMWBRegister() {
-        //storing register destination
-        val registerDestination = eXMEMRegister.getReigsterDestination()
-        mEMWBRegister.storeRegisterDestination(registerDestination)
+        //storing register file write address
+        val rfWriteAddress = eXMEMRegister.getRFWriteAddress()
+        mEMWBRegister.storeRFWriteAddress(rfWriteAddress)
         //storing ALU result
         val aluResult = eXMEMRegister.getALUResult()
         mEMWBRegister.storeALUResult(aluResult)

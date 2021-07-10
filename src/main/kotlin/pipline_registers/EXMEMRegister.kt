@@ -13,7 +13,7 @@ class EXMEMRegister {
         private var aluZeroFlag = false
         private var aluResult = 0
         private var readPortTwoOfRF = 0
-        private var registerDestination = 0
+        private var rfWriteAddress = 0
         private var rfWritePortSource = RFWritePortSource.AluResult
     }
 
@@ -31,8 +31,8 @@ class EXMEMRegister {
         readPortTwoOfRF = data
     }
 
-    fun storeRegisterDestination(data: Int) {
-        registerDestination = data
+    fun storeRFWriteAddress(data: Int) {
+        rfWriteAddress = data
     }
 
     fun storeIsBranchFlag(itIs: Boolean) {
@@ -67,7 +67,7 @@ class EXMEMRegister {
 
     fun getZeroFlag() = aluZeroFlag
 
-    fun getReigsterDestination() = registerDestination
+    fun getRFWriteAddress() = rfWriteAddress
 
     fun getRegisterWriteFalg() = registerWrite
 

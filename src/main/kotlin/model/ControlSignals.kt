@@ -5,11 +5,6 @@ enum class ALUSource{
     ReadPortTwoOFRF
 }
 
-enum class WriteBackDestination{
-    RTypeDestination,
-    ITypeDestination
-}
-
 enum class ALUOperator{
     Add,
     Sub,

@@ -3,14 +3,12 @@ package stages
 import model.ALUOperator
 import model.ALUSource
 import model.RFWritePortSource
-import model.WriteBackDestination
 import pipline_registers.IDEXRegister
 import pipline_registers.IFIDRegister
 import pipline_registers.MEMWBRegister
 import utils.convertBinaryStringToInt
 import utils.convertBinaryStringToUInt
 import utils.substring
-import java.util.*
 
 class StageDecode {
 
@@ -41,28 +39,35 @@ class StageDecode {
         //storing immediate value to pipeline register(ID/EX)
         idEXRegister.storeImmediate(immediate)
 
-        //separate i type destination register address from instruction
-        val _iTypeDestination = instruction.substring(16, 21)
-        val iTypeDestination = convertBinaryStringToUInt(_iTypeDestination)
-        //storing i type destination address to pipeline register(ID/EX)
-        idEXRegister.storeITypeDestination(iTypeDestination)
-
-        //separate r type destination register address from instruction
-        val _rTypeDestination = instruction.substring(11, 16)
-        val rTypeDestination = convertBinaryStringToUInt(_rTypeDestination)
-        //storing i type destination address to pipeline register(ID/EX)
-        idEXRegister.storeRTypeDestination(rTypeDestination)
+        idEXRegister.storeRFWriteAddress(specifyRFWriteAddress(instruction))
 
         fillIDEXRegister(instruction)
 
         writeToRegister()
     }
 
+    private fun specifyRFWriteAddress(instruction: String): Int {
+        //separate i type destination register address from instruction
+        val _iTypeDestination = instruction.substring(16, 21)
+        val iTypeDestination = convertBinaryStringToUInt(_iTypeDestination)
+        //separate r type destination register address from instruction
+        val _rTypeDestination = instruction.substring(11, 16)
+        val rTypeDestination = convertBinaryStringToUInt(_rTypeDestination)
+
+        //separate op code
+        val opCode = instruction.substring(26, 32)
+
+        return if (opCode == "000000")
+            rTypeDestination
+        else
+            iTypeDestination
+    }
+
     private fun writeToRegister() {
         val writeOnRegister = memWBRegister.getWritingOnRegisterFlag()
         if (writeOnRegister) {
             val data = stageWriteBack.getWriteBackData()
-            val registerDestination = memWBRegister.getRegisterDestination()
+            val registerDestination = memWBRegister.getRFWriteAddress()
 
             registerFile.set(registerDestination, data)
         }
@@ -73,17 +78,9 @@ class StageDecode {
         idEXRegister.storeNextPC(nextPC)
         //separate op code
         val opCode = instruction.substring(26, 32)
-        if (opCode == "000000") {
-            //specify ALU source
-            idEXRegister.storeALUSource(ALUSource.ReadPortTwoOFRF)
-            //specify Register Destination
-            idEXRegister.storeWriteBackDestination(WriteBackDestination.RTypeDestination)
-        } else {
-            //specify ALU source
-            idEXRegister.storeALUSource(ALUSource.Immediate)
-            //specify Register destination
-            idEXRegister.storeWriteBackDestination(WriteBackDestination.ITypeDestination)
-        }
+        //specify ALU source
+        idEXRegister.storeALUSource(if (opCode == "000000") ALUSource.ReadPortTwoOFRF else ALUSource.Immediate)
+
         //specify ALU operator
         val functionCode = instruction.substring(0, 6)
         when (functionCode) {

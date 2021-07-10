@@ -2,7 +2,6 @@ package stages
 
 import model.ALUOperator
 import model.ALUSource
-import model.WriteBackDestination
 import pipline_registers.EXMEMRegister
 import pipline_registers.IDEXRegister
 import utils.convertBinaryStringToInt
@@ -57,14 +56,9 @@ class StageExecute {
         //store read port two of register file
         val readPortTwoOfRFData = iDEXRegister.getReadPortTwoDataOfRF()
         eXMEMRegister.storeReadPortTwoData(readPortTwoOfRFData)
-        //specify register destination
-        val registerDestination = iDEXRegister.getRegisterDestination()
-        eXMEMRegister.storeRegisterDestination(
-            when (registerDestination) {
-                WriteBackDestination.RTypeDestination -> iDEXRegister.getRTypeDestination()
-                WriteBackDestination.ITypeDestination -> iDEXRegister.getITypeDestination()
-            }
-        )
+        //store register write address
+        val rfWriteAddress = iDEXRegister.getRFWriteAddress()
+        eXMEMRegister.storeRFWriteAddress(rfWriteAddress)
         //specify is branch flag
         val isBranch = iDEXRegister.getIsBranchFlag()
         eXMEMRegister.storeIsBranchFlag(isBranch)

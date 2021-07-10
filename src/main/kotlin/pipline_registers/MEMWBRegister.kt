@@ -8,20 +8,20 @@ class MEMWBRegister {
         private var registerWrite = false
         private var dataMemoryOutPut: Int = 0
         private var aluResult: Int = 0
-        private var registerDestination = 0
+        private var rfWriteAddress = 0
         private var rfWritePortSource = RFWritePortSource.AluResult
     }
 
     fun getWritingOnRegisterFlag(): Boolean = registerWrite
 
-    fun getRegisterDestination() = registerDestination
+    fun getRFWriteAddress() = rfWriteAddress
 
     fun storeDataMemOutPut(data:Int){
         dataMemoryOutPut = data
     }
 
-    fun storeRegisterDestination(destination: Int) {
-        registerDestination = destination
+    fun storeRFWriteAddress(address: Int) {
+        rfWriteAddress = address
     }
 
     fun storeALUResult(result: Int) {

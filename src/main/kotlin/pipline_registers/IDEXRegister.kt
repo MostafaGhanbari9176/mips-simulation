@@ -3,8 +3,6 @@ package pipline_registers
 import model.ALUOperator
 import model.ALUSource
 import model.RFWritePortSource
-import model.WriteBackDestination
-import java.util.*
 
 class IDEXRegister {
 
@@ -13,15 +11,13 @@ class IDEXRegister {
         private var memoryWrite = false
         private var memoryRead = false
         private var isBranch = false
-        private var writeBackDestination = WriteBackDestination.RTypeDestination
         private var aluOperator = ALUOperator.Add
         private var aluSource = ALUSource.ReadPortTwoOFRF
         private var nextPC = 0
         private var readPortOneOfRF: Int = 0
         private var readPortTwoOfRF: Int = 0
         private var instructionImmediateSection: Int = 0
-        private var ITypeDestination = 0
-        private var RTypeDestination = 0
+        private var rfWriteAddress = 0
         private var rfWritePortSource = RFWritePortSource.AluResult
         private var instruction:String = "00000000000000000000000000000000"
     }
@@ -33,14 +29,6 @@ class IDEXRegister {
 
     fun storeImmediate(data: Int) {
         instructionImmediateSection = data
-    }
-
-    fun storeITypeDestination(data: Int) {
-        ITypeDestination = data
-    }
-
-    fun storeRTypeDestination(data: Int) {
-        RTypeDestination = data
     }
 
     fun storeNextPC(pc: Int) {
@@ -55,8 +43,8 @@ class IDEXRegister {
         aluOperator = operator
     }
 
-    fun storeWriteBackDestination(destination: WriteBackDestination) {
-        writeBackDestination = destination
+    fun storeRFWriteAddress(destination: Int) {
+        rfWriteAddress = destination
     }
 
     fun storeIsBranchFlag(itIs: Boolean) {
@@ -85,11 +73,7 @@ class IDEXRegister {
 
     fun getALUOperator() = aluOperator
 
-    fun getRegisterDestination() = writeBackDestination
-
-    fun getRTypeDestination() = RTypeDestination
-
-    fun getITypeDestination() = ITypeDestination
+    fun getRFWriteAddress() = rfWriteAddress
 
     fun getNextPC() = nextPC
 
