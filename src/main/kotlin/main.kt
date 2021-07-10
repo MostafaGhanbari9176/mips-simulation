@@ -20,7 +20,7 @@ fun main(args: Array<String>) {
 private fun showMenu() {
     println(".".repeat(30))
     println("Please Choose One")
-    println("1- Set Clock Length")
+    println("1- Set Clock Length(not implemented!)")
     println("2- Run A Simple Program Base On Section One(Table One) Of Final Project")
 
     val input = readLine()
@@ -49,7 +49,7 @@ private fun showTableOneInstructionsMenu() {
 
     val input = readLine()
 
-    if (validateSelectedMenu(input, 1..5, ::showTableOneInstructionsMenu)) {
+    if (validateSelectedMenu(input, 1..6, ::showTableOneInstructionsMenu)) {
         aluOperator = when (input!!.toInt()) {
             1 -> ALUOperator.Add
             2 -> ALUOperator.Sub
