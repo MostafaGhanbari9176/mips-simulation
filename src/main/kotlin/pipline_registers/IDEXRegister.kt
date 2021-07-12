@@ -9,6 +9,7 @@ import model.ALUOperator
 import model.ALUSource
 import model.InstructionModel
 import model.RFWritePortSource
+import utils.colored
 import utils.stallInstruction
 
 class IDEXRegister {
@@ -45,13 +46,13 @@ class IDEXRegister {
 
     fun activateRegister(clock: StateFlow<Int>) {
         CoroutineScope(Dispatchers.IO).launch {
-            clock.collect {
-                copyInputToOutPut()
+            clock.collect {i ->
+                copyInputToOutPut(i)
             }
         }
     }
 
-    private fun copyInputToOutPut() {
+    private fun copyInputToOutPut(clock:Int) {
         registerWrite_OUT = registerWrite_IN
         memoryWrite_OUT = memoryWrite_IN
         memoryRead_OUT = memoryRead_IN
@@ -65,6 +66,10 @@ class IDEXRegister {
         rfWriteAddress_OUT = rfWriteAddress_IN
         rfWritePortSource_OUT = rfWritePortSource_IN
         instruction_OUT = instruction_IN
+
+        colored {
+            println("ID/EX on clock $clock ; instIN:${instruction_IN.id}".bold)
+        }
     }
 
     fun storeOperands(operandOne: Int, operandTwo: Int) {

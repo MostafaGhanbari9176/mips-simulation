@@ -6,6 +6,7 @@ import model.*
 import pipline_registers.IDEXRegister
 import pipline_registers.IFIDRegister
 import pipline_registers.MEMWBRegister
+import utils.colored
 import utils.convertBinaryStringToInt
 import utils.convertBinaryStringToUInt
 import utils.substring
@@ -24,16 +25,18 @@ class StageDecode {
         }
     }
 
-    suspend fun activate(clock:StateFlow<Int>){
+    suspend fun activate(clock: StateFlow<Int>) {
         clock.collect { i ->
-            println("decode on clock $i")
-            decodeInstruction()
+            decodeInstruction(i)
         }
     }
 
-    private fun decodeInstruction() {
+    private fun decodeInstruction(clock: Int) {
         //reading instruction from pipeline register(IF/ID)
         val instruction = ifIDRegister.getInstruction()
+        colored {
+            println("decode instruction:${instruction.id} on clock:$clock".blue.bold)
+        }
         //separate operands address from instruction
         val readPortOneAddress = instruction.inst.substring(21, 26)
         val readPortTwoAddress = instruction.inst.substring(16, 21)
@@ -41,9 +44,11 @@ class StageDecode {
         val registerOne = registerFile[convertBinaryStringToUInt(readPortOneAddress)]
         val registerTwo = registerFile[convertBinaryStringToUInt(readPortTwoAddress)]
         //storing operands to pipeline register(ID/EX)
-        if (registerOne.pending || registerTwo.pending){
+        if (registerOne.pending || registerTwo.pending) {
+            colored {
+                println("inject stall for instruction: ${instruction.id}".bold.reverse)
+            }
             stageFetch.injectStall()
-            println("inject stall for instruction: ${instruction.id}")
         }
 
         idEXRegister.storeOperands(registerOne.data, registerTwo.data)
@@ -58,7 +63,7 @@ class StageDecode {
 
         fillIDEXRegister(instruction)
 
-        writeToRegister()
+        writeToRegister(clock)
     }
 
     private fun specifyRFWriteAddress(instruction: InstructionModel): Int {
@@ -69,7 +74,7 @@ class StageDecode {
         //specify writing instructions
         idEXRegister.storeWritingOnRegisterFlag(thisWriteOnRF)
 
-        if(!thisWriteOnRF)
+        if (!thisWriteOnRF)
             return 0
 
         //separate i type destination register address from instruction
@@ -91,7 +96,7 @@ class StageDecode {
         return writeAddress
     }
 
-    private fun writeToRegister() {
+    private fun writeToRegister(clock: Int) {
         val writeOnRegister = memWBRegister.getWritingOnRegisterFlag()
         if (writeOnRegister) {
             val data = stageWriteBack.getWriteBackData()
@@ -104,6 +109,10 @@ class StageDecode {
 
             if (register.pendingInstructionId == instruction.id)
                 register.pending = false
+
+            colored {
+                println("RF[$writeAddress]<=$data on clock:$clock ; inst:${instruction.id} ; pending:${register.pending}".cyan.bold)
+            }
         }
     }
 

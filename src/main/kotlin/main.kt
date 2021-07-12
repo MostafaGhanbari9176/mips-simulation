@@ -9,6 +9,7 @@ import pipline_registers.IDEXRegister
 import pipline_registers.IFIDRegister
 import pipline_registers.MEMWBRegister
 import stages.*
+import utils.colored
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
 
@@ -25,7 +26,9 @@ private var numberOfActivatedStages = 0
 private var aluOperator: ALUOperator = ALUOperator.Add
 
 fun main(args: Array<String>) {
-    showMenu()
+    colored {
+        showMenu()
+    }
 }
 
 private fun showMenu() {
@@ -147,7 +150,7 @@ fun activateStages() {
     }
 }
 
-private fun activateRegisters(){
+private fun activateRegisters() {
     IFIDRegister().activateRegister(clock as StateFlow<Int>)
     IDEXRegister().activateRegister(clock as StateFlow<Int>)
     EXMEMRegister().activateRegister(clock as StateFlow<Int>)
@@ -163,7 +166,7 @@ fun instantiateStages() {
 }
 
 private fun startClock() {
-    timer = fixedRateTimer(startAt = Calendar.getInstance().time, period = 1) {
+    timer = fixedRateTimer(startAt = Calendar.getInstance().time, period = 1000) {
         if (numberOfActivatedStages == 4)
             ++clock.value
     }

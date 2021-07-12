@@ -6,6 +6,7 @@ import model.ALUOperator
 import model.ALUSource
 import pipline_registers.EXMEMRegister
 import pipline_registers.IDEXRegister
+import utils.colored
 import utils.convertBinaryStringToInt
 import utils.substring
 
@@ -19,21 +20,23 @@ class StageExecute {
 
     suspend fun activate(clock: StateFlow<Int>){
         clock.collect{ i ->
-            println("execute on clock $i")
-            executeInstruction()
+            executeInstruction(i)
         }
     }
 
-    private fun executeInstruction() {
+    private fun executeInstruction(clock:Int) {
         readOperands()
-        checkInstructionType()
+        checkInstructionType(clock)
         generateZeroFlag()
         generateBranchAddress()
         fillExMEMRegister()
     }
 
-    private fun checkInstructionType() {
+    private fun checkInstructionType(clock: Int) {
         val instruction = iDEXRegister.getInstruction()
+        colored {
+            println("execute instruction:${instruction.id} on clock:$clock".green.bold)
+        }
         //separate op code
         val _opCode = instruction.inst.substring(26, 32)
         val opCode = convertBinaryStringToInt(_opCode)

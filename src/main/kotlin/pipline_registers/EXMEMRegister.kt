@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import model.InstructionModel
 import model.RFWritePortSource
+import utils.colored
 import utils.stallInstruction
 
 class EXMEMRegister {
@@ -39,13 +40,13 @@ class EXMEMRegister {
 
     fun activateRegister(clock: StateFlow<Int>) {
         CoroutineScope(Dispatchers.IO).launch {
-            clock.collect {
-                copyInputToOutPut()
+            clock.collect {i ->
+                copyInputToOutPut(i)
             }
         }
     }
 
-    private fun copyInputToOutPut() {
+    private fun copyInputToOutPut(clock:Int) {
         registerWrite_OUT = registerWrite_IN
         memoryWrite_OUT = memoryWrite_IN
         memoryRead_OUT = memoryRead_IN
@@ -57,6 +58,9 @@ class EXMEMRegister {
         rfWriteAddress_OUT = rfWriteAddress_IN
         rfWritePortSource_OUT = rfWritePortSource_IN
         instruction_OUT = instruction_IN
+        colored {
+            println("EX/MEM on clock $clock ; instIN:${instruction_IN.id}".bold)
+        }
     }
 
     fun getBranchAddress() = branchAddress_OUT

@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import model.InstructionModel
+import utils.colored
 import utils.stallInstruction
 import java.util.*
 
@@ -21,15 +22,19 @@ class IFIDRegister {
 
     fun activateRegister(clock: StateFlow<Int>) {
         CoroutineScope(IO).launch {
-            clock.collect {
-                copyInputToOutPut()
+            clock.collect {i->
+                copyInputToOutPut(i)
             }
         }
     }
 
-    private fun copyInputToOutPut() {
+    private fun copyInputToOutPut(clock:Int) {
         nextPC_OUT = nextPC_IN
         instruction_OUT = instruction_IN
+
+        colored {
+            println("IF/ID on clock $clock ; instIN:${instruction_IN.id}".bold)
+        }
     }
 
     fun storeNextPC(nextPC: Int) {

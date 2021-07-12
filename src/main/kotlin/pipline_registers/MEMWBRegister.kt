@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import model.InstructionModel
 import model.RFWritePortSource
+import utils.colored
 import utils.stallInstruction
 
 class MEMWBRegister {
@@ -29,26 +30,30 @@ class MEMWBRegister {
 
     fun activateRegister(clock: StateFlow<Int>) {
         CoroutineScope(Dispatchers.IO).launch {
-            clock.collect {
-                copyInputToOutPut()
+            clock.collect { i ->
+                copyInputToOutPut(i)
             }
         }
     }
 
-    private fun copyInputToOutPut() {
+    private fun copyInputToOutPut(clock:Int) {
         registerWrite_OUT = registerWrite_IN
         dataMemoryOutPut_OUT = dataMemoryOutPut_IN
         aluResult_OUT = aluResult_IN
         rfWriteAddress_OUT = rfWriteAddress_IN
         rfWritePortSource_OUT = rfWritePortSource_IN
-        instruction_OUT  = instruction_IN
+        instruction_OUT = instruction_IN
+
+        colored {
+            println("MEM/WB on clock $clock ; instIN:${instruction_IN.id}".bold)
+        }
     }
 
     fun getWritingOnRegisterFlag(): Boolean = registerWrite_OUT
 
     fun getRFWriteAddress() = rfWriteAddress_OUT
 
-    fun storeDataMemOutPut(data:Int){
+    fun storeDataMemOutPut(data: Int) {
         dataMemoryOutPut_IN = data
     }
 
@@ -64,11 +69,11 @@ class MEMWBRegister {
         registerWrite_IN = store
     }
 
-    fun storeRFStorePortSource(source:RFWritePortSource){
+    fun storeRFStorePortSource(source: RFWritePortSource) {
         rfWritePortSource_IN = source
     }
 
-    fun getRFStorePortSource() = rfWritePortSource_OUT
+    fun getRFWritePortSource() = rfWritePortSource_OUT
 
     fun getALUResult() = aluResult_OUT
 

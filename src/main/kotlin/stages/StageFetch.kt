@@ -7,6 +7,7 @@ import model.InstructionModel
 import model.PCSource
 import pipline_registers.EXMEMRegister
 import pipline_registers.IFIDRegister
+import utils.colored
 import utils.stallInstruction
 
 class StageFetch {
@@ -22,17 +23,19 @@ class StageFetch {
 
     suspend fun activate(clock:StateFlow<Int>, programIsEnd: () -> Unit){
         clock.collect { i ->
-            println("fetch on clock $i")
-           fetchFromInstructionMemory(programIsEnd)
+           fetchFromInstructionMemory(i, programIsEnd)
         }
     }
 
-    private fun fetchFromInstructionMemory(programIsEnd: () -> Unit) {
+    private fun fetchFromInstructionMemory(clock:Int, programIsEnd: () -> Unit) {
         var instruction = instructionMemory[PC]
         if (programIsEnd(instruction.inst))
             programIsEnd()
 
         if (!stall) {
+            colored {
+                println("fetch instruction:${instruction.id} on clock:$clock".red.bold)
+            }
             PC = when (getPCSource()) {
                 PCSource.NextPC -> ++PC
                 PCSource.Branch -> exMemRegister.getBranchAddress()

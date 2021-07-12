@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import pipline_registers.EXMEMRegister
 import pipline_registers.MEMWBRegister
+import utils.colored
 
 class StageMemory {
 
@@ -16,14 +17,13 @@ class StageMemory {
 
     suspend fun activate(clock: StateFlow<Int>) {
         clock.collect { i ->
-            println("memory work on clock $i")
-            applyMemWork()
+            applyMemWork(i)
         }
     }
 
-    private fun applyMemWork() {
-        write()
-        read()
+    private fun applyMemWork(clock: Int) {
+        write(clock)
+        read(clock)
         fillMEMWBRegister()
     }
 
@@ -45,21 +45,26 @@ class StageMemory {
         mEMWBRegister.storeInstruction(instruction)
     }
 
-    private fun read() {
+    private fun read(clock:Int) {
         val readFlag = eXMEMRegister.getMemReadFlag()
         if (readFlag) {
             val memAddress = eXMEMRegister.getALUResult()
             val data = dataMemory[memAddress]
-
+            colored {
+                println("MEM[$memAddress]=>$data on clock:$clock ; inst:${eXMEMRegister.getInstruction().id}".yellow.bold)
+            }
             mEMWBRegister.storeDataMemOutPut(data)
         }
     }
 
-    private fun write() {
+    private fun write(clock:Int) {
         val writeFlag = eXMEMRegister.getMemWriteFlag()
         if (writeFlag) {
             val memAddress = eXMEMRegister.getALUResult()
             val data = eXMEMRegister.getMemWriteData()
+            colored {
+                println("MEM[$memAddress]<=$data on clock:$clock ; inst:${eXMEMRegister.getInstruction().id}".purple.bold)
+            }
             if (memAddress > dataMemory.size - 1)
                 dataMemory.add(memAddress, data)
             else

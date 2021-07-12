@@ -8,7 +8,7 @@ class StageWriteBack {
     private val mEMWBRegister = MEMWBRegister()
 
     fun getWriteBackData(): Int {
-        val registerWriteSource = mEMWBRegister.getRFStorePortSource()
+        val registerWriteSource = mEMWBRegister.getRFWritePortSource()
         return when (registerWriteSource) {
             RFWritePortSource.AluResult -> mEMWBRegister.getALUResult()
             RFWritePortSource.DataMemoryOutPut -> mEMWBRegister.getDataMemOutPut()
