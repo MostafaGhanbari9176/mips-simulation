@@ -9,6 +9,7 @@ import model.ALUOperator
 import model.ALUSource
 import model.InstructionModel
 import model.RFWritePortSource
+import stageExecute
 import utils.colored
 import utils.stallInstruction
 
@@ -48,6 +49,8 @@ class IDEXRegister {
         CoroutineScope(Dispatchers.IO).launch {
             clock.collect {i ->
                 copyInputToOutPut(i)
+
+                stageExecute.executeInstruction(i)
             }
         }
     }

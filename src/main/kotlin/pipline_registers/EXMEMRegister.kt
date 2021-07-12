@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import model.InstructionModel
 import model.RFWritePortSource
+import stageMemory
 import utils.colored
 import utils.stallInstruction
 
@@ -40,13 +41,15 @@ class EXMEMRegister {
 
     fun activateRegister(clock: StateFlow<Int>) {
         CoroutineScope(Dispatchers.IO).launch {
-            clock.collect {i ->
+            clock.collect { i ->
                 copyInputToOutPut(i)
+
+                stageMemory.applyMemWork(i)
             }
         }
     }
 
-    private fun copyInputToOutPut(clock:Int) {
+    private fun copyInputToOutPut(clock: Int) {
         registerWrite_OUT = registerWrite_IN
         memoryWrite_OUT = memoryWrite_IN
         memoryRead_OUT = memoryRead_IN

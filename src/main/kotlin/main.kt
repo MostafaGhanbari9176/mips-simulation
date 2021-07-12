@@ -14,14 +14,20 @@ import java.util.*
 import kotlin.concurrent.fixedRateTimer
 
 var timer: Timer? = null
-private var stageFetch: StageFetch? = null
-private var stageDecode: StageDecode? = null
-private var stageExecute: StageExecute? = null
-private var stageMemory: StageMemory? = null
-private var stageWriteBack: StageWriteBack? = null
-var programIsEnd = false
 private val clock = MutableStateFlow(0)
-private var numberOfActivatedStages = 0
+
+val stageFetch = StageFetch()
+val stageDecode = StageDecode()
+val stageExecute = StageExecute()
+val stageMemory = StageMemory()
+val stageWriteBack = StageWriteBack()
+
+val if_id = IFIDRegister()
+val id_ex = IDEXRegister()
+val ex_mem = EXMEMRegister()
+val mem_wb = MEMWBRegister()
+
+var programIsEnd = false
 
 private var aluOperator: ALUOperator = ALUOperator.Add
 
@@ -80,7 +86,7 @@ private fun showTableOneInstructionsMenu() {
     }
 }
 
-fun readOperands() {
+private fun readOperands() {
     println(".".repeat(30))
     println("Please Inter Operands And separate with 'o' Like 5o7")
     println("Or Inter exit")
@@ -110,65 +116,24 @@ fun readOperands() {
 
 }
 
-fun startTestALUProgram(data1: Int, data2: Int) {
-    instantiateStages()
-
-    stageMemory?.loadDataMemory(data1, data2)
-    stageFetch?.loadALUInstructions(aluOperator)
-    startClock()
+private fun startTestALUProgram(data1: Int, data2: Int) {
+    stageMemory.loadDataMemory(data1, data2)
+    stageFetch.loadALUInstructions(aluOperator)
+    stageFetch.activatePC(clock as StateFlow<Int>)
     activateRegisters()
-    activateStages()
-}
-
-fun activateStages() {
-    CoroutineScope(IO).launch {
-        stageFetch = StageFetch().apply {
-            ++numberOfActivatedStages
-            activate(clock as StateFlow<Int>) {
-                programIsEnd()
-                timer?.cancel()
-            }
-        }
-    }
-    CoroutineScope(IO).launch {
-        ++numberOfActivatedStages
-        stageDecode = StageDecode().apply {
-            activate(clock as StateFlow<Int>)
-        }
-    }
-    CoroutineScope(IO).launch {
-        ++numberOfActivatedStages
-        stageExecute = StageExecute().apply {
-            activate(clock as StateFlow<Int>)
-        }
-    }
-    CoroutineScope(IO).launch {
-        ++numberOfActivatedStages
-        stageMemory = StageMemory().apply {
-            activate(clock as StateFlow<Int>)
-        }
-    }
+    startClock()
 }
 
 private fun activateRegisters() {
-    IFIDRegister().activateRegister(clock as StateFlow<Int>)
-    IDEXRegister().activateRegister(clock as StateFlow<Int>)
-    EXMEMRegister().activateRegister(clock as StateFlow<Int>)
-    MEMWBRegister().activateRegister(clock as StateFlow<Int>)
-}
-
-fun instantiateStages() {
-    stageFetch = StageFetch()
-    stageDecode = StageDecode()
-    stageExecute = StageExecute()
-    stageMemory = StageMemory()
-    stageWriteBack = StageWriteBack()
+    //if_id.activateRegister(clock as StateFlow<Int>)
+    id_ex.activateRegister(clock as StateFlow<Int>)
+    ex_mem.activateRegister(clock as StateFlow<Int>)
+    mem_wb.activateRegister(clock as StateFlow<Int>)
 }
 
 private fun startClock() {
-    timer = fixedRateTimer(startAt = Calendar.getInstance().time, period = 1000) {
-        if (numberOfActivatedStages == 4)
-            ++clock.value
+    timer = fixedRateTimer(startAt = Calendar.getInstance().time, period = 100) {
+        ++clock.value
     }
 }
 

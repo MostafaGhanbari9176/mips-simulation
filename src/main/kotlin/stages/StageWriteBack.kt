@@ -1,17 +1,15 @@
 package stages
 
+import mem_wb
 import model.RFWritePortSource
-import pipline_registers.MEMWBRegister
 
 class StageWriteBack {
 
-    private val mEMWBRegister = MEMWBRegister()
-
     fun getWriteBackData(): Int {
-        val registerWriteSource = mEMWBRegister.getRFWritePortSource()
+        val registerWriteSource = mem_wb.getRFWritePortSource()
         return when (registerWriteSource) {
-            RFWritePortSource.AluResult -> mEMWBRegister.getALUResult()
-            RFWritePortSource.DataMemoryOutPut -> mEMWBRegister.getDataMemOutPut()
+            RFWritePortSource.AluResult -> mem_wb.getALUResult()
+            RFWritePortSource.DataMemoryOutPut -> mem_wb.getDataMemOutPut()
         }
     }
 

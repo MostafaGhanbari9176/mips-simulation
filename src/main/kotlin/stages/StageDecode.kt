@@ -1,11 +1,11 @@
 package stages
 
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
+import id_ex
+import if_id
+import mem_wb
 import model.*
-import pipline_registers.IDEXRegister
-import pipline_registers.IFIDRegister
-import pipline_registers.MEMWBRegister
+import stageFetch
+import stageWriteBack
 import utils.colored
 import utils.convertBinaryStringToInt
 import utils.convertBinaryStringToUInt
@@ -13,27 +13,15 @@ import utils.substring
 
 class StageDecode {
 
-    private val ifIDRegister = IFIDRegister()
-    private val idEXRegister = IDEXRegister()
-    private val memWBRegister = MEMWBRegister()
-    private val stageWriteBack = StageWriteBack()
-    private val stageFetch = StageFetch()
-
     companion object {
         private val registerFile = MutableList<RegisterFileModel>(32) {
             RegisterFileModel()
         }
     }
 
-    suspend fun activate(clock: StateFlow<Int>) {
-        clock.collect { i ->
-            decodeInstruction(i)
-        }
-    }
-
-    private fun decodeInstruction(clock: Int) {
+    fun decodeInstruction(clock: Int) {
         //reading instruction from pipeline register(IF/ID)
-        val instruction = ifIDRegister.getInstruction()
+        val instruction = if_id.getInstruction()
         colored {
             println("decode instruction:${instruction.id} on clock:$clock".blue.bold)
         }
@@ -46,20 +34,20 @@ class StageDecode {
         //storing operands to pipeline register(ID/EX)
         if (registerOne.pending || registerTwo.pending) {
             colored {
-                println("inject stall for instruction: ${instruction.id}".bold.reverse)
+                println("inject stall for instruction: ${instruction.id} ; clock:$clock".bold.reverse)
             }
             stageFetch.injectStall()
         }
 
-        idEXRegister.storeOperands(registerOne.data, registerTwo.data)
+        id_ex.storeOperands(registerOne.data, registerTwo.data)
 
         //separate immediate value from instruction
         val _immediate = instruction.inst.substring(0, 16)
         val immediate = convertBinaryStringToInt(_immediate)
         //storing immediate value to pipeline register(ID/EX)
-        idEXRegister.storeImmediate(immediate)
+        id_ex.storeImmediate(immediate)
 
-        idEXRegister.storeRFWriteAddress(specifyRFWriteAddress(instruction))
+        id_ex.storeRFWriteAddress(specifyRFWriteAddress(instruction))
 
         fillIDEXRegister(instruction)
 
@@ -72,7 +60,7 @@ class StageDecode {
 
         val thisWriteOnRF = opCode != "000010" && opCode != "101011" && instruction.id != -1
         //specify writing instructions
-        idEXRegister.storeWritingOnRegisterFlag(thisWriteOnRF)
+        id_ex.storeWritingOnRegisterFlag(thisWriteOnRF)
 
         if (!thisWriteOnRF)
             return 0
@@ -97,12 +85,12 @@ class StageDecode {
     }
 
     private fun writeToRegister(clock: Int) {
-        val writeOnRegister = memWBRegister.getWritingOnRegisterFlag()
+        val writeOnRegister = mem_wb.getWritingOnRegisterFlag()
         if (writeOnRegister) {
             val data = stageWriteBack.getWriteBackData()
-            val writeAddress = memWBRegister.getRFWriteAddress()
+            val writeAddress = mem_wb.getRFWriteAddress()
 
-            val instruction = memWBRegister.getInstruction()
+            val instruction = mem_wb.getInstruction()
 
             val register = registerFile[writeAddress]
             register.data = data
@@ -117,44 +105,44 @@ class StageDecode {
     }
 
     private fun fillIDEXRegister(instruction: InstructionModel) {
-        val nextPC = ifIDRegister.getNextPC()
-        idEXRegister.storeNextPC(nextPC)
+        val nextPC = if_id.getNextPC()
+        id_ex.storeNextPC(nextPC)
         //separate op code
         val opCode = instruction.inst.substring(26, 32)
         //specify ALU source
-        idEXRegister.storeALUSource(if (opCode == "000000") ALUSource.ReadPortTwoOFRF else ALUSource.Immediate)
+        id_ex.storeALUSource(if (opCode == "000000") ALUSource.ReadPortTwoOFRF else ALUSource.Immediate)
 
         //specify ALU operator
         val functionCode = instruction.inst.substring(0, 6)
         when (functionCode) {
             "100000" ->
-                idEXRegister.storeALUOperator(ALUOperator.Add)
+                id_ex.storeALUOperator(ALUOperator.Add)
             "100010" ->
-                idEXRegister.storeALUOperator(ALUOperator.Sub)
+                id_ex.storeALUOperator(ALUOperator.Sub)
             "100101" ->
-                idEXRegister.storeALUOperator(ALUOperator.OR)
+                id_ex.storeALUOperator(ALUOperator.OR)
             "100100" ->
-                idEXRegister.storeALUOperator(ALUOperator.And)
+                id_ex.storeALUOperator(ALUOperator.And)
             "101010" ->
-                idEXRegister.storeALUOperator(ALUOperator.SLT)
+                id_ex.storeALUOperator(ALUOperator.SLT)
         }
 
         //specify branch instruction
-        idEXRegister.storeIsBranchFlag(opCode == "000100" || opCode == "000101")
+        id_ex.storeIsBranchFlag(opCode == "000100" || opCode == "000101")
         //specify lw instruction
-        idEXRegister.storeMemReadFlag(opCode == "100011")
+        id_ex.storeMemReadFlag(opCode == "100011")
         //specify sw instruction(stall instruction id is -1)
-        idEXRegister.storeMemWriteFlag(opCode == "101011" && instruction.id != -1)
+        id_ex.storeMemWriteFlag(opCode == "101011" && instruction.id != -1)
         //specify register write data source
-        idEXRegister.storeRegisterWritePortSource(
+        id_ex.storeRegisterWritePortSource(
             if (opCode == "000000")
                 RFWritePortSource.AluResult
             else
                 RFWritePortSource.DataMemoryOutPut
         )
         //store instruction
-        val instruction = ifIDRegister.getInstruction()
-        idEXRegister.storeInstruction(instruction)
+        val instruction = if_id.getInstruction()
+        id_ex.storeInstruction(instruction)
     }
 
 }

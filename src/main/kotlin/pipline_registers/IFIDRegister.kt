@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import model.InstructionModel
+import stageDecode
 import utils.colored
 import utils.stallInstruction
 import java.util.*
@@ -20,12 +21,14 @@ class IFIDRegister {
         private var instruction_OUT = stallInstruction
     }
 
-    fun activateRegister(clock: StateFlow<Int>) {
-        CoroutineScope(IO).launch {
-            clock.collect {i->
+    fun activateRegister(i: Int) {
+        //CoroutineScope(IO).launch {
+         //   clock.collect {i->
                 copyInputToOutPut(i)
-            }
-        }
+
+                stageDecode.decodeInstruction(i)
+       //     }
+       // }
     }
 
     private fun copyInputToOutPut(clock:Int) {
@@ -38,7 +41,7 @@ class IFIDRegister {
     }
 
     fun storeNextPC(nextPC: Int) {
-        IFIDRegister.nextPC_IN = nextPC
+        nextPC_IN = nextPC
     }
 
     fun storeInstruction(inst: InstructionModel) {

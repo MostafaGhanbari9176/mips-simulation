@@ -1,19 +1,21 @@
 package stages
 
+import ex_mem
+import if_id
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import model.ALUOperator
 import model.InstructionModel
 import model.PCSource
-import pipline_registers.EXMEMRegister
-import pipline_registers.IFIDRegister
+import programIsEnd
 import utils.colored
 import utils.stallInstruction
 
 class StageFetch {
-
-    private val exMemRegister = EXMEMRegister()
-    private val ifIDRegister = IFIDRegister()
 
     companion object {
         private var PC: Int = 0
@@ -21,16 +23,20 @@ class StageFetch {
         private var stall = false
     }
 
-    suspend fun activate(clock:StateFlow<Int>, programIsEnd: () -> Unit){
-        clock.collect { i ->
-           fetchFromInstructionMemory(i, programIsEnd)
+    fun activatePC(clock:StateFlow<Int>){
+        CoroutineScope(IO).launch {
+            clock.collect { i ->
+                fetchFromInstructionMemory(i)
+            }
         }
     }
 
-    private fun fetchFromInstructionMemory(clock:Int, programIsEnd: () -> Unit) {
+    private fun fetchFromInstructionMemory(clock:Int) {
+        if_id.activateRegister(clock)
+
         var instruction = instructionMemory[PC]
-        if (programIsEnd(instruction.inst))
-            programIsEnd()
+        if (checkForLastInst(instruction.inst))
+            return
 
         if (!stall) {
             colored {
@@ -38,7 +44,7 @@ class StageFetch {
             }
             PC = when (getPCSource()) {
                 PCSource.NextPC -> ++PC
-                PCSource.Branch -> exMemRegister.getBranchAddress()
+                PCSource.Branch -> ex_mem.getBranchAddress()
             }
         } else{
             stall = false
@@ -46,7 +52,7 @@ class StageFetch {
         }
 
         //fill IF/ID register
-        ifIDRegister.apply {
+        if_id.apply {
             storeNextPC(PC)
             storeInstruction(instruction)
         }
@@ -56,13 +62,17 @@ class StageFetch {
         stall = true
     }
 
-    private fun programIsEnd(instruction: String): Boolean {
-        return instruction.all { c -> c == '1' }
+    private fun checkForLastInst(instruction: String): Boolean {
+        val isLastIns =  instruction.all { c -> c == '1' }
+
+        programIsEnd = true
+
+        return isLastIns
     }
 
     private fun getPCSource(): PCSource {
-        val isBranch = exMemRegister.getIsBranchFlag()
-        val zeroFlag = exMemRegister.getZeroFlag()
+        val isBranch = ex_mem.getIsBranchFlag()
+        val zeroFlag = ex_mem.getZeroFlag()
 
         return if (isBranch && zeroFlag)
             PCSource.Branch

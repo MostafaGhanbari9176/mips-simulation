@@ -1,30 +1,18 @@
 package stages
 
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
+import ex_mem
+import id_ex
 import model.ALUOperator
 import model.ALUSource
-import pipline_registers.EXMEMRegister
-import pipline_registers.IDEXRegister
 import utils.colored
 import utils.convertBinaryStringToInt
-import utils.substring
 
 class StageExecute {
-
-    private val iDEXRegister = IDEXRegister()
-    private val eXMEMRegister = EXMEMRegister()
 
     private var operandOne = 0
     private var operandTwo = 0
 
-    suspend fun activate(clock: StateFlow<Int>){
-        clock.collect{ i ->
-            executeInstruction(i)
-        }
-    }
-
-    private fun executeInstruction(clock:Int) {
+    fun executeInstruction(clock:Int) {
         readOperands()
         checkInstructionType(clock)
         generateZeroFlag()
@@ -33,7 +21,7 @@ class StageExecute {
     }
 
     private fun checkInstructionType(clock: Int) {
-        val instruction = iDEXRegister.getInstruction()
+        val instruction = id_ex.getInstruction()
         colored {
             println("execute instruction:${instruction.id} on clock:$clock".green.bold)
         }
@@ -47,57 +35,57 @@ class StageExecute {
             generateMemoryAddress()
 
         //store instruction
-        eXMEMRegister.storeInstruction(instruction)
+        ex_mem.storeInstruction(instruction)
     }
 
     private fun generateMemoryAddress() {
         val base = operandOne
-        val offset = iDEXRegister.getImmediateData()
+        val offset = id_ex.getImmediateData()
 
         val address = base + offset
 
-        eXMEMRegister.storeALUResult(address)
+        ex_mem.storeALUResult(address)
     }
 
     private fun generateBranchAddress() {
-        val nextPc = iDEXRegister.getNextPC()
-        val immediate = iDEXRegister.getImmediateData()
+        val nextPc = id_ex.getNextPC()
+        val immediate = id_ex.getImmediateData()
         val branchAddress = immediate * 4 + nextPc
 
-        eXMEMRegister.storeBranchAddress(branchAddress)
+        ex_mem.storeBranchAddress(branchAddress)
     }
 
     private fun fillExMEMRegister() {
         //store read port two of register file
-        val readPortTwoOfRFData = iDEXRegister.getReadPortTwoDataOfRF()
-        eXMEMRegister.storeReadPortTwoData(readPortTwoOfRFData)
+        val readPortTwoOfRFData = id_ex.getReadPortTwoDataOfRF()
+        ex_mem.storeReadPortTwoData(readPortTwoOfRFData)
         //store register write address
-        val rfWriteAddress = iDEXRegister.getRFWriteAddress()
-        eXMEMRegister.storeRFWriteAddress(rfWriteAddress)
+        val rfWriteAddress = id_ex.getRFWriteAddress()
+        ex_mem.storeRFWriteAddress(rfWriteAddress)
         //specify is branch flag
-        val isBranch = iDEXRegister.getIsBranchFlag()
-        eXMEMRegister.storeIsBranchFlag(isBranch)
+        val isBranch = id_ex.getIsBranchFlag()
+        ex_mem.storeIsBranchFlag(isBranch)
         //specify memory write flag
-        val memoryWrite = iDEXRegister.getMemWriteFlag()
-        eXMEMRegister.storeMemWriteFlag(memoryWrite)
+        val memoryWrite = id_ex.getMemWriteFlag()
+        ex_mem.storeMemWriteFlag(memoryWrite)
         //specify memory read flag
-        val memoryRead = iDEXRegister.getMemReadFlag()
-        eXMEMRegister.storeMemReadFlag(memoryRead)
+        val memoryRead = id_ex.getMemReadFlag()
+        ex_mem.storeMemReadFlag(memoryRead)
         //specify writing on register flag
-        val writingOnRegister = iDEXRegister.getWritinOnRFFlag()
-        eXMEMRegister.storeWritingOnRegisterFlag(writingOnRegister)
+        val writingOnRegister = id_ex.getWritinOnRFFlag()
+        ex_mem.storeWritingOnRegisterFlag(writingOnRegister)
         //specify write port source
-        val writePortSource = iDEXRegister.getWritePortSource()
-        eXMEMRegister.storeRegisterWritePortSource(writePortSource)
+        val writePortSource = id_ex.getWritePortSource()
+        ex_mem.storeRegisterWritePortSource(writePortSource)
     }
 
     private fun generateZeroFlag() {
         val zeroFlag = (operandOne - operandTwo) == 0
-        eXMEMRegister.storeZeroFlag(zeroFlag)
+        ex_mem.storeZeroFlag(zeroFlag)
     }
 
     private fun applyOperator() {
-        val functioCode = iDEXRegister.getALUOperator()
+        val functioCode = id_ex.getALUOperator()
 
         val result = when (functioCode) {
             ALUOperator.Add -> operandOne + operandTwo
@@ -110,15 +98,15 @@ class StageExecute {
                 0
         }
 
-        eXMEMRegister.storeALUResult(result)
+        ex_mem.storeALUResult(result)
     }
 
     private fun readOperands() {
-        operandOne = iDEXRegister.getReadPortOneDataOfRF()
-        val aluSource = iDEXRegister.getAluSource()
+        operandOne = id_ex.getReadPortOneDataOfRF()
+        val aluSource = id_ex.getAluSource()
         operandTwo = when (aluSource) {
-            ALUSource.Immediate -> iDEXRegister.getImmediateData()
-            ALUSource.ReadPortTwoOFRF -> iDEXRegister.getReadPortTwoDataOfRF()
+            ALUSource.Immediate -> id_ex.getImmediateData()
+            ALUSource.ReadPortTwoOFRF -> id_ex.getReadPortTwoDataOfRF()
         }
     }
 

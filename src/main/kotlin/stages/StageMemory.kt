@@ -1,27 +1,16 @@
 package stages
 
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
-import pipline_registers.EXMEMRegister
-import pipline_registers.MEMWBRegister
+import ex_mem
+import mem_wb
 import utils.colored
 
 class StageMemory {
-
-    private val eXMEMRegister = EXMEMRegister()
-    private val mEMWBRegister = MEMWBRegister()
 
     companion object {
         private val dataMemory = mutableListOf<Int>()
     }
 
-    suspend fun activate(clock: StateFlow<Int>) {
-        clock.collect { i ->
-            applyMemWork(i)
-        }
-    }
-
-    private fun applyMemWork(clock: Int) {
+    fun applyMemWork(clock: Int) {
         write(clock)
         read(clock)
         fillMEMWBRegister()
@@ -29,41 +18,41 @@ class StageMemory {
 
     private fun fillMEMWBRegister() {
         //storing register file write address
-        val rfWriteAddress = eXMEMRegister.getRFWriteAddress()
-        mEMWBRegister.storeRFWriteAddress(rfWriteAddress)
+        val rfWriteAddress = ex_mem.getRFWriteAddress()
+        mem_wb.storeRFWriteAddress(rfWriteAddress)
         //storing ALU result
-        val aluResult = eXMEMRegister.getALUResult()
-        mEMWBRegister.storeALUResult(aluResult)
+        val aluResult = ex_mem.getALUResult()
+        mem_wb.storeALUResult(aluResult)
         //storing register write flag
-        val registerStore = eXMEMRegister.getRegisterWriteFalg()
-        mEMWBRegister.storeRegisterWriteFlag(registerStore)
+        val registerStore = ex_mem.getRegisterWriteFalg()
+        mem_wb.storeRegisterWriteFlag(registerStore)
         //storing register file write port source
-        val writePortSource = eXMEMRegister.getWritePortSource()
-        mEMWBRegister.storeRFStorePortSource(writePortSource)
+        val writePortSource = ex_mem.getWritePortSource()
+        mem_wb.storeRFStorePortSource(writePortSource)
         //storing instruction
-        val instruction = eXMEMRegister.getInstruction()
-        mEMWBRegister.storeInstruction(instruction)
+        val instruction = ex_mem.getInstruction()
+        mem_wb.storeInstruction(instruction)
     }
 
-    private fun read(clock:Int) {
-        val readFlag = eXMEMRegister.getMemReadFlag()
+    private fun read(clock: Int) {
+        val readFlag = ex_mem.getMemReadFlag()
         if (readFlag) {
-            val memAddress = eXMEMRegister.getALUResult()
+            val memAddress = ex_mem.getALUResult()
             val data = dataMemory[memAddress]
             colored {
-                println("MEM[$memAddress]=>$data on clock:$clock ; inst:${eXMEMRegister.getInstruction().id}".yellow.bold)
+                println("MEM[$memAddress]=>$data on clock:$clock ; inst:${ex_mem.getInstruction().id}".yellow.bold)
             }
-            mEMWBRegister.storeDataMemOutPut(data)
+            mem_wb.storeDataMemOutPut(data)
         }
     }
 
-    private fun write(clock:Int) {
-        val writeFlag = eXMEMRegister.getMemWriteFlag()
+    private fun write(clock: Int) {
+        val writeFlag = ex_mem.getMemWriteFlag()
         if (writeFlag) {
-            val memAddress = eXMEMRegister.getALUResult()
-            val data = eXMEMRegister.getMemWriteData()
+            val memAddress = ex_mem.getALUResult()
+            val data = ex_mem.getMemWriteData()
             colored {
-                println("MEM[$memAddress]<=$data on clock:$clock ; inst:${eXMEMRegister.getInstruction().id}".purple.bold)
+                println("MEM[$memAddress]<=$data on clock:$clock ; inst:${ex_mem.getInstruction().id}".purple.bold)
             }
             if (memAddress > dataMemory.size - 1)
                 dataMemory.add(memAddress, data)
