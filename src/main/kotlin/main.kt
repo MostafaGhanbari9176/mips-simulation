@@ -4,6 +4,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import model.ALUOperator
+import pipline_registers.EXMEMRegister
+import pipline_registers.IDEXRegister
+import pipline_registers.IFIDRegister
+import pipline_registers.MEMWBRegister
 import stages.*
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
@@ -109,6 +113,7 @@ fun startTestALUProgram(data1: Int, data2: Int) {
     stageMemory?.loadDataMemory(data1, data2)
     stageFetch?.loadALUInstructions(aluOperator)
     startClock()
+    activateRegisters()
     activateStages()
 }
 
@@ -140,6 +145,13 @@ fun activateStages() {
             activate(clock as StateFlow<Int>)
         }
     }
+}
+
+private fun activateRegisters(){
+    IFIDRegister().activateRegister(clock as StateFlow<Int>)
+    IDEXRegister().activateRegister(clock as StateFlow<Int>)
+    EXMEMRegister().activateRegister(clock as StateFlow<Int>)
+    MEMWBRegister().activateRegister(clock as StateFlow<Int>)
 }
 
 fun instantiateStages() {

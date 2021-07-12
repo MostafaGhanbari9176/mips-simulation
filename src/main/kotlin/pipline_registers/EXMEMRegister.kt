@@ -1,5 +1,10 @@
 package pipline_registers
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import model.InstructionModel
 import model.RFWritePortSource
 import utils.stallInstruction
@@ -7,84 +12,118 @@ import utils.stallInstruction
 class EXMEMRegister {
 
     companion object {
-        private var registerWrite = false
-        private var memoryWrite = false
-        private var memoryRead = false
-        private var isBranch = false
-        private var branchAddress = 0
-        private var aluZeroFlag = false
-        private var aluResult = 0
-        private var readPortTwoOfRF = 0
-        private var rfWriteAddress = 0
-        private var rfWritePortSource = RFWritePortSource.AluResult
-        private var instruction = stallInstruction
+        private var registerWrite_IN = false
+        private var memoryWrite_IN = false
+        private var memoryRead_IN = false
+        private var isBranch_IN = false
+        private var branchAddress_IN = 0
+        private var aluZeroFlag_IN = false
+        private var aluResult_IN = 0
+        private var readPortTwoOfRF_IN = 0
+        private var rfWriteAddress_IN = 0
+        private var rfWritePortSource_IN = RFWritePortSource.AluResult
+        private var instruction_IN = stallInstruction
+
+        private var registerWrite_OUT = false
+        private var memoryWrite_OUT = false
+        private var memoryRead_OUT = false
+        private var isBranch_OUT = false
+        private var branchAddress_OUT = 0
+        private var aluZeroFlag_OUT = false
+        private var aluResult_OUT = 0
+        private var readPortTwoOfRF_OUT = 0
+        private var rfWriteAddress_OUT = 0
+        private var rfWritePortSource_OUT = RFWritePortSource.AluResult
+        private var instruction_OUT = stallInstruction
     }
 
-    fun getBranchAddress() = branchAddress
+    fun activateRegister(clock: StateFlow<Int>) {
+        CoroutineScope(Dispatchers.IO).launch {
+            clock.collect {
+                copyInputToOutPut()
+            }
+        }
+    }
+
+    private fun copyInputToOutPut() {
+        registerWrite_OUT = registerWrite_IN
+        memoryWrite_OUT = memoryWrite_IN
+        memoryRead_OUT = memoryRead_IN
+        isBranch_OUT = isBranch_IN
+        branchAddress_OUT = branchAddress_IN
+        aluZeroFlag_OUT = aluZeroFlag_IN
+        aluResult_OUT = aluResult_IN
+        readPortTwoOfRF_OUT = readPortTwoOfRF_IN
+        rfWriteAddress_OUT = rfWriteAddress_IN
+        rfWritePortSource_OUT = rfWritePortSource_IN
+        instruction_OUT = instruction_IN
+    }
+
+    fun getBranchAddress() = branchAddress_OUT
 
     fun storeALUResult(data: Int) {
-        aluResult = data
+        aluResult_IN = data
     }
 
     fun storeZeroFlag(zeroFlag: Boolean) {
-        aluZeroFlag = zeroFlag
+        aluZeroFlag_IN = zeroFlag
     }
 
-    fun storeReadPortTwoData(data:Int){
-        readPortTwoOfRF = data
+    fun storeReadPortTwoData(data: Int) {
+        readPortTwoOfRF_IN = data
     }
 
     fun storeRFWriteAddress(data: Int) {
-        rfWriteAddress = data
+        rfWriteAddress_IN = data
     }
 
     fun storeIsBranchFlag(itIs: Boolean) {
-        isBranch = itIs
+        isBranch_IN = itIs
     }
 
     fun storeMemWriteFlag(write: Boolean) {
-        memoryWrite = write
+        memoryWrite_IN = write
     }
 
     fun storeMemReadFlag(read: Boolean) {
-        memoryRead = read
+        memoryRead_IN = read
     }
 
     fun storeWritingOnRegisterFlag(write: Boolean) {
-        registerWrite = write
+        registerWrite_IN = write
     }
 
     fun storeBranchAddress(address: Int) {
-        branchAddress = address
+        branchAddress_IN = address
     }
 
-    fun getMemWriteFlag() = memoryWrite
+    fun getMemWriteFlag() = memoryWrite_OUT
 
-    fun getALUResult() = aluResult
+    fun getALUResult() = aluResult_OUT
 
-    fun getMemWriteData() = readPortTwoOfRF
+    fun getMemWriteData() = readPortTwoOfRF_OUT
 
-    fun getMemReadFlag() = memoryRead
+    fun getMemReadFlag() = memoryRead_OUT
 
-    fun getIsBranchFlag() = isBranch
+    fun getIsBranchFlag() = isBranch_OUT
 
-    fun getZeroFlag() = aluZeroFlag
+    fun getZeroFlag() = aluZeroFlag_OUT
 
-    fun getRFWriteAddress() = rfWriteAddress
+    fun getRFWriteAddress() = rfWriteAddress_OUT
 
-    fun getRegisterWriteFalg() = registerWrite
+    fun getRegisterWriteFalg() = registerWrite_OUT
 
     fun storeRegisterWritePortSource(source: RFWritePortSource) {
-        rfWritePortSource = source
+        rfWritePortSource_IN = source
     }
 
-    fun getWritePortSource() = rfWritePortSource
+    fun getWritePortSource() = rfWritePortSource_OUT
 
     fun storeInstruction(inst: InstructionModel) {
-        instruction = inst
+        instruction_IN = inst
     }
 
-    fun getInstruction() = instruction
+    fun getInstruction() = instruction_OUT
 
 }
 

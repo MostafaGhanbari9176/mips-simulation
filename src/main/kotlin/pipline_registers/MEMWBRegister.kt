@@ -1,5 +1,10 @@
 package pipline_registers
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import model.InstructionModel
 import model.RFWritePortSource
 import utils.stallInstruction
@@ -7,49 +12,73 @@ import utils.stallInstruction
 class MEMWBRegister {
 
     companion object {
-        private var registerWrite = false
-        private var dataMemoryOutPut: Int = 0
-        private var aluResult: Int = 0
-        private var rfWriteAddress = 0
-        private var rfWritePortSource = RFWritePortSource.AluResult
-        private var instruction = stallInstruction
+        private var registerWrite_IN = false
+        private var dataMemoryOutPut_IN: Int = 0
+        private var aluResult_IN: Int = 0
+        private var rfWriteAddress_IN = 0
+        private var rfWritePortSource_IN = RFWritePortSource.AluResult
+        private var instruction_IN = stallInstruction
+
+        private var registerWrite_OUT = false
+        private var dataMemoryOutPut_OUT: Int = 0
+        private var aluResult_OUT: Int = 0
+        private var rfWriteAddress_OUT = 0
+        private var rfWritePortSource_OUT = RFWritePortSource.AluResult
+        private var instruction_OUT = stallInstruction
     }
 
-    fun getWritingOnRegisterFlag(): Boolean = registerWrite
+    fun activateRegister(clock: StateFlow<Int>) {
+        CoroutineScope(Dispatchers.IO).launch {
+            clock.collect {
+                copyInputToOutPut()
+            }
+        }
+    }
 
-    fun getRFWriteAddress() = rfWriteAddress
+    private fun copyInputToOutPut() {
+        registerWrite_OUT = registerWrite_IN
+        dataMemoryOutPut_OUT = dataMemoryOutPut_IN
+        aluResult_OUT = aluResult_IN
+        rfWriteAddress_OUT = rfWriteAddress_IN
+        rfWritePortSource_OUT = rfWritePortSource_IN
+        instruction_OUT  = instruction_IN
+    }
+
+    fun getWritingOnRegisterFlag(): Boolean = registerWrite_OUT
+
+    fun getRFWriteAddress() = rfWriteAddress_OUT
 
     fun storeDataMemOutPut(data:Int){
-        dataMemoryOutPut = data
+        dataMemoryOutPut_IN = data
     }
 
     fun storeRFWriteAddress(address: Int) {
-        rfWriteAddress = address
+        rfWriteAddress_IN = address
     }
 
     fun storeALUResult(result: Int) {
-        aluResult = result
+        aluResult_IN = result
     }
 
     fun storeRegisterWriteFlag(store: Boolean) {
-        registerWrite = store
+        registerWrite_IN = store
     }
 
     fun storeRFStorePortSource(source:RFWritePortSource){
-        rfWritePortSource = source
+        rfWritePortSource_IN = source
     }
 
-    fun getRFStorePortSource() = rfWritePortSource
+    fun getRFStorePortSource() = rfWritePortSource_OUT
 
-    fun getALUResult() = aluResult
+    fun getALUResult() = aluResult_OUT
 
-    fun getDataMemOutPut() = dataMemoryOutPut
+    fun getDataMemOutPut() = dataMemoryOutPut_OUT
 
     fun storeInstruction(inst: InstructionModel) {
-        instruction = inst
+        instruction_IN = inst
     }
 
-    fun getInstruction() = instruction
+    fun getInstruction() = instruction_OUT
 
 }
 
