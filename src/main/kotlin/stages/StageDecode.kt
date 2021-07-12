@@ -1,9 +1,6 @@
 package stages
 
-import model.ALUOperator
-import model.ALUSource
-import model.InstructionModel
-import model.RFWritePortSource
+import model.*
 import pipline_registers.IDEXRegister
 import pipline_registers.IFIDRegister
 import pipline_registers.MEMWBRegister
@@ -17,9 +14,12 @@ class StageDecode {
     private val idEXRegister = IDEXRegister()
     private val memWBRegister = MEMWBRegister()
     private val stageWriteBack = StageWriteBack()
+    private val stageFetch = StageFetch()
 
     companion object {
-        private val registerFile = Array<Int>(32) { 0 }
+        private val registerFile = MutableList<RegisterFileModel>(32) {
+            RegisterFileModel()
+        }
     }
 
     fun decodeInstruction() {
@@ -29,10 +29,15 @@ class StageDecode {
         val readPortOneAddress = instruction.inst.substring(21, 26)
         val readPortTwoAddress = instruction.inst.substring(16, 21)
         //fetching operands value from register file
-        val operandOne = registerFile[convertBinaryStringToUInt(readPortOneAddress)]
-        val operandTwo = registerFile[convertBinaryStringToUInt(readPortTwoAddress)]
+        val registerOne = registerFile[convertBinaryStringToUInt(readPortOneAddress)]
+        val registerTwo = registerFile[convertBinaryStringToUInt(readPortTwoAddress)]
         //storing operands to pipeline register(ID/EX)
-        idEXRegister.storeOperands(operandOne, operandTwo)
+        if (registerOne.pending || registerTwo.pending){
+            stageFetch.injectStall()
+            println("inject stall for instruction: ${instruction.id}")
+        }
+
+        idEXRegister.storeOperands(registerOne.data, registerTwo.data)
 
         //separate immediate value from instruction
         val _immediate = instruction.inst.substring(0, 16)
@@ -48,6 +53,16 @@ class StageDecode {
     }
 
     private fun specifyRFWriteAddress(instruction: InstructionModel): Int {
+        //separate op code
+        val opCode = instruction.inst.substring(26, 32)
+
+        val thisWriteOnRF = opCode != "000010" && opCode != "101011" && instruction.id != -1
+        //specify writing instructions
+        idEXRegister.storeWritingOnRegisterFlag(thisWriteOnRF)
+
+        if(!thisWriteOnRF)
+            return 0
+
         //separate i type destination register address from instruction
         val _iTypeDestination = instruction.inst.substring(16, 21)
         val iTypeDestination = convertBinaryStringToUInt(_iTypeDestination)
@@ -55,22 +70,31 @@ class StageDecode {
         val _rTypeDestination = instruction.inst.substring(11, 16)
         val rTypeDestination = convertBinaryStringToUInt(_rTypeDestination)
 
-        //separate op code
-        val opCode = instruction.inst.substring(26, 32)
-
-        return if (opCode == "000000")
+        val writeAddress = if (opCode == "000000")
             rTypeDestination
         else
             iTypeDestination
+
+        val writeRegister = registerFile[writeAddress]
+        writeRegister.pending = true
+        writeRegister.pendingInstructionId = instruction.id
+
+        return writeAddress
     }
 
     private fun writeToRegister() {
         val writeOnRegister = memWBRegister.getWritingOnRegisterFlag()
         if (writeOnRegister) {
             val data = stageWriteBack.getWriteBackData()
-            val registerDestination = memWBRegister.getRFWriteAddress()
+            val writeAddress = memWBRegister.getRFWriteAddress()
 
-            registerFile.set(registerDestination, data)
+            val instruction = memWBRegister.getInstruction()
+
+            val register = registerFile[writeAddress]
+            register.data = data
+
+            if (register.pendingInstructionId == instruction.id)
+                register.pending = false
         }
     }
 
@@ -101,10 +125,8 @@ class StageDecode {
         idEXRegister.storeIsBranchFlag(opCode == "000100" || opCode == "000101")
         //specify lw instruction
         idEXRegister.storeMemReadFlag(opCode == "100011")
-        //specify sw instruction
-        idEXRegister.storeMemWriteFlag(opCode == "101011")
-        //specify writing instructions
-        idEXRegister.storeWritingOnRegisterFlag(opCode != "000010" && opCode != "101011")
+        //specify sw instruction(stall instruction id is -1)
+        idEXRegister.storeMemWriteFlag(opCode == "101011" && instruction.id != -1)
         //specify register write data source
         idEXRegister.storeRegisterWritePortSource(
             if (opCode == "000000")

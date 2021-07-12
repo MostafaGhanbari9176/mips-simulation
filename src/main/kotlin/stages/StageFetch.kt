@@ -28,8 +28,10 @@ class StageFetch {
                 PCSource.NextPC -> ++PC
                 PCSource.Branch -> exMemRegister.getBranchAddress()
             }
-        } else
+        } else{
+            stall = false
             instruction = stallInstruction
+        }
 
         //fill IF/ID register
         ifIDRegister.apply {
@@ -62,7 +64,6 @@ class StageFetch {
         val instructions = listOf<String>(
             "10001100000010000000000000000000",
             "10001100000010010000000000000001",
-            "00000000000000000000000000000000",
             "00000001001010000101000000" +
                     when (aluOperator) {
                         ALUOperator.Add -> "100000"
@@ -71,7 +72,6 @@ class StageFetch {
                         ALUOperator.And -> "100100"
                         ALUOperator.SLT -> "101010"
                     },
-            "00000000000000000000000000000000",
             "10101100000010100000000000000010",
             "11111111111111111111111111111111"
         )
