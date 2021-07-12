@@ -1,5 +1,7 @@
 package stages
 
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import model.ALUOperator
 import model.ALUSource
 import pipline_registers.EXMEMRegister
@@ -15,7 +17,14 @@ class StageExecute {
     private var operandOne = 0
     private var operandTwo = 0
 
-    fun executeInstruction() {
+    suspend fun activate(clock: StateFlow<Int>){
+        clock.collect{ i ->
+            println("execute on clock $i")
+            executeInstruction()
+        }
+    }
+
+    private fun executeInstruction() {
         readOperands()
         checkInstructionType()
         generateZeroFlag()

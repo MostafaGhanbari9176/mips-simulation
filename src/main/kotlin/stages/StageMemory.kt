@@ -1,5 +1,7 @@
 package stages
 
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import pipline_registers.EXMEMRegister
 import pipline_registers.MEMWBRegister
 
@@ -12,7 +14,14 @@ class StageMemory {
         private val dataMemory = mutableListOf<Int>()
     }
 
-    fun applyMemWork() {
+    suspend fun activate(clock: StateFlow<Int>) {
+        clock.collect { i ->
+            println("memory work on clock $i")
+            applyMemWork()
+        }
+    }
+
+    private fun applyMemWork() {
         write()
         read()
         fillMEMWBRegister()

@@ -1,5 +1,7 @@
 package stages
 
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import model.ALUOperator
 import model.InstructionModel
 import model.PCSource
@@ -18,7 +20,14 @@ class StageFetch {
         private var stall = false
     }
 
-    fun fetchFromInstructionMemory(programIsEnd: () -> Unit) {
+    suspend fun activate(clock:StateFlow<Int>, programIsEnd: () -> Unit){
+        clock.collect { i ->
+            println("fetch on clock $i")
+           fetchFromInstructionMemory(programIsEnd)
+        }
+    }
+
+    private fun fetchFromInstructionMemory(programIsEnd: () -> Unit) {
         var instruction = instructionMemory[PC]
         if (programIsEnd(instruction.inst))
             programIsEnd()

@@ -1,5 +1,7 @@
 package stages
 
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import model.*
 import pipline_registers.IDEXRegister
 import pipline_registers.IFIDRegister
@@ -22,7 +24,14 @@ class StageDecode {
         }
     }
 
-    fun decodeInstruction() {
+    suspend fun activate(clock:StateFlow<Int>){
+        clock.collect { i ->
+            println("decode on clock $i")
+            decodeInstruction()
+        }
+    }
+
+    private fun decodeInstruction() {
         //reading instruction from pipeline register(IF/ID)
         val instruction = ifIDRegister.getInstruction()
         //separate operands address from instruction

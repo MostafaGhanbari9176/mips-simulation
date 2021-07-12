@@ -1,15 +1,22 @@
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import model.ALUOperator
 import stages.*
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
 
 var timer: Timer? = null
-private var stageFetch:StageFetch? = null
-private var stageDecode:StageDecode? = null
-private var stageExecute:StageExecute? = null
-private var stageMemory:StageMemory? = null
-private var stageWriteBack:StageWriteBack? = null
+private var stageFetch: StageFetch? = null
+private var stageDecode: StageDecode? = null
+private var stageExecute: StageExecute? = null
+private var stageMemory: StageMemory? = null
+private var stageWriteBack: StageWriteBack? = null
 var programIsEnd = false
+private val clock = MutableStateFlow(0)
+private var numberOfActivatedStages = 0
 
 private var aluOperator: ALUOperator = ALUOperator.Add
 
@@ -102,6 +109,37 @@ fun startTestALUProgram(data1: Int, data2: Int) {
     stageMemory?.loadDataMemory(data1, data2)
     stageFetch?.loadALUInstructions(aluOperator)
     startClock()
+    activateStages()
+}
+
+fun activateStages() {
+    CoroutineScope(IO).launch {
+        stageFetch = StageFetch().apply {
+            ++numberOfActivatedStages
+            activate(clock as StateFlow<Int>) {
+                programIsEnd()
+                timer?.cancel()
+            }
+        }
+    }
+    CoroutineScope(IO).launch {
+        ++numberOfActivatedStages
+        stageDecode = StageDecode().apply {
+            activate(clock as StateFlow<Int>)
+        }
+    }
+    CoroutineScope(IO).launch {
+        ++numberOfActivatedStages
+        stageExecute = StageExecute().apply {
+            activate(clock as StateFlow<Int>)
+        }
+    }
+    CoroutineScope(IO).launch {
+        ++numberOfActivatedStages
+        stageMemory = StageMemory().apply {
+            activate(clock as StateFlow<Int>)
+        }
+    }
 }
 
 fun instantiateStages() {
@@ -110,6 +148,13 @@ fun instantiateStages() {
     stageExecute = StageExecute()
     stageMemory = StageMemory()
     stageWriteBack = StageWriteBack()
+}
+
+private fun startClock() {
+    timer = fixedRateTimer(startAt = Calendar.getInstance().time, period = 1) {
+        if (numberOfActivatedStages == 4)
+            ++clock.value
+    }
 }
 
 private fun showFilePicker() {
@@ -127,25 +172,12 @@ private fun showClockLengthMenu() {
     showMenu()
 }
 
-private fun startClock() {
-    timer = fixedRateTimer(startAt = Calendar.getInstance().time, period = 1) {
-        stageFetch?.fetchFromInstructionMemory {
-            programIsEnd()
-            timer?.cancel()
-        }
-        stageDecode?.decodeInstruction()
-        stageExecute?.executeInstruction()
-        stageMemory?.applyMemWork()
-        //stageWriteBack
-    }
-}
-
-fun programIsEnd() {
+private fun programIsEnd() {
     val aluResult = stageMemory?.readDataMEM(2)
     println("=".repeat(35))
     println("Program Is End")
     println("ALU Result From MEM[2] : $aluResult")
-   // showMenu()
+    // showMenu()
 }
 
 private fun validateSelectedMenu(input: String?, validRange: IntRange, menu: () -> Unit): Boolean {
