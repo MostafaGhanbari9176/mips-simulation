@@ -6,10 +6,7 @@ import mem_wb
 import model.*
 import stageFetch
 import stageWriteBack
-import utils.colored
-import utils.convertBinaryStringToInt
-import utils.convertBinaryStringToUInt
-import utils.substring
+import utils.*
 
 class StageDecode {
 
@@ -31,14 +28,16 @@ class StageDecode {
         //fetching operands value from register file
         val registerOne = registerFile[convertBinaryStringToUInt(readPortOneAddress)]
         val registerTwo = registerFile[convertBinaryStringToUInt(readPortTwoAddress)]
-        //storing operands to pipeline register(ID/EX)
-        if (registerOne.pending || registerTwo.pending) {
+        //separate op code
+        val opCode = instruction.inst.substring(26, 32)
+        if (registerOne.pending || (registerTwo.pending && opCode == "000000")) {
             colored {
                 println("inject stall for instruction: ${instruction.id} ; clock:$clock".bold.reverse)
             }
             stageFetch.injectStall()
         }
 
+        //storing operands to pipeline register(ID/EX)
         id_ex.storeOperands(registerOne.data, registerTwo.data)
 
         //separate immediate value from instruction

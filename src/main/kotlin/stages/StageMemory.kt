@@ -2,7 +2,7 @@ package stages
 
 import ex_mem
 import mem_wb
-import utils.colored
+import utils.*
 
 class StageMemory {
 

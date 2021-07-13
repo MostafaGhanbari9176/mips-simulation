@@ -4,7 +4,7 @@ a simple mips processor simulator
 
 ## Features
 
-- support Add,Or,And,Or,Slt Operators
+- support Add,Sub,And,Or,Slt Operators
 
 ## Made With
 
@@ -15,3 +15,5 @@ a simple mips processor simulator
 - support control instructions
 - support data hazards
 - support control hazards
+
+

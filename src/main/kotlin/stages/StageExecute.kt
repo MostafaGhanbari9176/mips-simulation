@@ -4,8 +4,7 @@ import ex_mem
 import id_ex
 import model.ALUOperator
 import model.ALUSource
-import utils.colored
-import utils.convertBinaryStringToInt
+import utils.*
 
 class StageExecute {
 

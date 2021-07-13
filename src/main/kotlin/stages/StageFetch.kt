@@ -4,7 +4,6 @@ import ex_mem
 import if_id
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -12,8 +11,7 @@ import model.ALUOperator
 import model.InstructionModel
 import model.PCSource
 import programIsEnd
-import utils.colored
-import utils.stallInstruction
+import utils.*
 
 class StageFetch {
 
