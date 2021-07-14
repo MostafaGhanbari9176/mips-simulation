@@ -27,8 +27,6 @@ val id_ex = IDEXRegister()
 val ex_mem = EXMEMRegister()
 val mem_wb = MEMWBRegister()
 
-var programIsEnd = false
-
 private var aluOperator: ALUOperator = ALUOperator.Add
 
 fun main(args: Array<String>) {
@@ -127,7 +125,10 @@ private fun startTestALUProgram(data1: Int, data2: Int) {
 private fun activateRegisters() {
     //if_id.activateRegister(clock as StateFlow<Int>)
     id_ex.activateRegister(clock as StateFlow<Int>)
-    ex_mem.activateRegister(clock as StateFlow<Int>)
+    ex_mem.activateRegister(clock as StateFlow<Int>){
+        timer?.cancel()
+        programIsEnd()
+    }
     mem_wb.activateRegister(clock as StateFlow<Int>)
 }
 
@@ -153,7 +154,7 @@ private fun showClockLengthMenu() {
 }
 
 private fun programIsEnd() {
-    val aluResult = stageMemory?.readDataMEM(2)
+    val aluResult = stageMemory.readDataMEM(2)
     println("=".repeat(35))
     println("Program Is End")
     println("ALU Result From MEM[2] : $aluResult")

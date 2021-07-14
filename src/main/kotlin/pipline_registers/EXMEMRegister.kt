@@ -26,6 +26,7 @@ class EXMEMRegister {
         private var rfWritePortSource_IN = RFWritePortSource.AluResult
         private var instruction_IN = stallInstruction
         private var stallSignal_IN = false
+        private var endSignal_IN = false
 
         private var registerWrite_OUT = false
         private var memoryWrite_OUT = false
@@ -39,14 +40,15 @@ class EXMEMRegister {
         private var rfWritePortSource_OUT = RFWritePortSource.AluResult
         private var instruction_OUT = stallInstruction
         private var stallSignal_OUT = false
+        private var endSignal_OUT = false
     }
 
-    fun activateRegister(clock: StateFlow<Int>) {
+    fun activateRegister(clock: StateFlow<Int>, shutDownClock:() -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             clock.collect { i ->
                 copyInputToOutPut(i)
 
-                stageMemory.applyMemWork(i)
+                stageMemory.applyMemWork(i, shutDownClock)
             }
         }
     }
@@ -64,6 +66,7 @@ class EXMEMRegister {
         rfWritePortSource_OUT = rfWritePortSource_IN
         instruction_OUT = instruction_IN
         stallSignal_OUT = stallSignal_IN
+        endSignal_OUT = endSignal_IN
         colored {
             println("EX/MEM on clock $clock ; instIN:${instruction_IN.id}".bold)
         }
@@ -140,6 +143,12 @@ class EXMEMRegister {
     }
 
     fun getStallSignal() = stallSignal_OUT
+
+    fun storeEndSignal(end: Boolean) {
+        endSignal_IN = end
+    }
+
+    fun getEndSignal() = endSignal_OUT
 
 }
 

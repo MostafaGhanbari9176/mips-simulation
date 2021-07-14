@@ -19,6 +19,11 @@ class StageDecode {
     }
 
     fun decodeInstruction(clock: Int) {
+        if(checkForLastInst()){
+            stageFetch.programIsEnd(true)
+            id_ex.storeEndSignal(true)
+            return
+        }
         //reading instruction from pipeline register(IF/ID)
         instruction = if_id.getInstruction()
         colored {
@@ -62,6 +67,14 @@ class StageDecode {
         fillIDEXRegister()
 
         writeToRegister(clock)
+    }
+
+    private fun checkForLastInst(): Boolean {
+        val instruction = if_id.getInstruction().inst
+
+        val isLastIns = instruction.all { c -> c == '1' }
+
+        return isLastIns
     }
 
     private fun specifyRFWriteAddress(): Int {

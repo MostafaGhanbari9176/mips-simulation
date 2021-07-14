@@ -12,6 +12,10 @@ class StageExecute {
     private var operandTwo = 0
 
     fun executeInstruction(clock:Int) {
+        val programISEnd = id_ex.getEndSignal()
+        ex_mem.storeEndSignal(programISEnd)
+        if(programISEnd)
+            return
         readOperands()
         checkInstructionType(clock)
         generateZeroFlag()

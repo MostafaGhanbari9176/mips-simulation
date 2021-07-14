@@ -10,7 +10,12 @@ class StageMemory {
         private val dataMemory = mutableListOf<Int>()
     }
 
-    fun applyMemWork(clock: Int) {
+    fun applyMemWork(clock: Int, shutDownClock:() -> Unit) {
+        val programIsEnd = ex_mem.getEndSignal()
+        if(programIsEnd) {
+            shutDownClock()
+            return
+        }
         write(clock)
         read(clock)
         fillMEMWBRegister()

@@ -16,9 +16,11 @@ class IFIDRegister {
     companion object {
         private var nextPC_IN: Int = 0
         private var instruction_IN = stallInstruction
+        private var endSignal_IN = false
 
         private var nextPC_OUT: Int = 0
         private var instruction_OUT = stallInstruction
+        private var endSignal_OUT = false
 
         private var disable = false
     }
@@ -36,6 +38,7 @@ class IFIDRegister {
     private fun copyInputToOutPut(clock: Int) {
         nextPC_OUT = nextPC_IN
         instruction_OUT = instruction_IN
+        endSignal_OUT = endSignal_IN
 
         colored {
             println("IF/ID on clock $clock ; instIN:${instruction_IN.id}".bold)
@@ -59,3 +62,5 @@ class IFIDRegister {
     }
 
 }
+
+

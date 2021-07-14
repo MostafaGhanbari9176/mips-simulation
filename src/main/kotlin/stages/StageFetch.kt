@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import model.ALUOperator
 import model.InstructionModel
 import model.PCSource
-import programIsEnd
 import utils.*
 
 class StageFetch {
@@ -19,6 +18,7 @@ class StageFetch {
         private var PC: Int = 0
         private val instructionMemory = mutableListOf<InstructionModel>()
         private var disablePC = false
+        private var programIsEnd = false
     }
 
     fun activatePC(clock: StateFlow<Int>) {
@@ -30,11 +30,12 @@ class StageFetch {
     }
 
     private fun fetchFromInstructionMemory(clock: Int) {
+        if(programIsEnd)
+            return
+
         if_id.activateRegister(clock)
 
         val instruction = instructionMemory[PC]
-        if (checkForLastInst(instruction.inst))
-            return
 
         if (!disablePC) {
             colored {
@@ -57,12 +58,8 @@ class StageFetch {
         disablePC = dis
     }
 
-    private fun checkForLastInst(instruction: String): Boolean {
-        val isLastIns = instruction.all { c -> c == '1' }
-
+    fun programIsEnd(end:Boolean){
         programIsEnd = true
-
-        return isLastIns
     }
 
     private fun getPCSource(): PCSource {
@@ -90,6 +87,7 @@ class StageFetch {
                         ALUOperator.SLT -> "101010"
                     },
             "10101100000010100000000000000010",
+            "11111111111111111111111111111111",
             "11111111111111111111111111111111"
         )
 
