@@ -32,6 +32,9 @@ class StageMemory {
         //storing instruction
         val instruction = ex_mem.getInstruction()
         mem_wb.storeInstruction(instruction)
+        //storing stall signal
+        val stall = ex_mem.getStallSignal()
+        mem_wb.storeStallSignal(stall)
     }
 
     private fun read(clock: Int) {
@@ -48,7 +51,8 @@ class StageMemory {
 
     private fun write(clock: Int) {
         val writeFlag = ex_mem.getMemWriteFlag()
-        if (writeFlag) {
+        val stall = ex_mem.getStallSignal()
+        if (writeFlag && !stall) {
             val memAddress = ex_mem.getALUResult()
             val data = ex_mem.getMemWriteData()
             colored {

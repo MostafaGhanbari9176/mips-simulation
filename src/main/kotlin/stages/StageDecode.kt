@@ -14,13 +14,16 @@ class StageDecode {
         private val registerFile = MutableList<RegisterFileModel>(32) {
             RegisterFileModel()
         }
+
+        private var instruction = stallInstruction
     }
 
     fun decodeInstruction(clock: Int) {
         //reading instruction from pipeline register(IF/ID)
-        val instruction = if_id.getInstruction()
+        instruction = if_id.getInstruction()
         colored {
             println("decode instruction:${instruction.id} on clock:$clock".blue.bold)
+            println("inst:${instruction.id} clock:$clock pending registers:${registerFile.mapIndexed { index, model -> object {val pending = model.pending; val display = "$index : ${model.pendingInstructionId}"}   }.filter { f-> f.pending }.map { g -> g.display }  }".blue.reverse.bold)
         }
         //separate operands address from instruction
         val readPortOneAddress = instruction.inst.substring(21, 26)
@@ -30,11 +33,19 @@ class StageDecode {
         val registerTwo = registerFile[convertBinaryStringToUInt(readPortTwoAddress)]
         //separate op code
         val opCode = instruction.inst.substring(26, 32)
-        if (registerOne.pending || (registerTwo.pending && opCode == "000000")) {
+
+        if (registerOne.pending || (registerTwo.pending && (opCode == "000000" || opCode == "101011"))) {
             colored {
-                println("inject stall for instruction: ${instruction.id} ; clock:$clock".bold.reverse)
+                println("inject stall for instruction: ${instruction.id} clock:$clock".bold.reverse)
             }
-            stageFetch.injectStall()
+            stageFetch.disablePC(true)
+            if_id.disable(true)
+            id_ex.storeStallSignal(true)
+            instruction = stallInstruction
+        }else{
+            id_ex.storeStallSignal(false)
+            stageFetch.disablePC(false)
+            if_id.disable(false)
         }
 
         //storing operands to pipeline register(ID/EX)
@@ -46,14 +57,14 @@ class StageDecode {
         //storing immediate value to pipeline register(ID/EX)
         id_ex.storeImmediate(immediate)
 
-        id_ex.storeRFWriteAddress(specifyRFWriteAddress(instruction))
+        id_ex.storeRFWriteAddress(specifyRFWriteAddress())
 
-        fillIDEXRegister(instruction)
+        fillIDEXRegister()
 
         writeToRegister(clock)
     }
 
-    private fun specifyRFWriteAddress(instruction: InstructionModel): Int {
+    private fun specifyRFWriteAddress(): Int {
         //separate op code
         val opCode = instruction.inst.substring(26, 32)
 
@@ -85,7 +96,8 @@ class StageDecode {
 
     private fun writeToRegister(clock: Int) {
         val writeOnRegister = mem_wb.getWritingOnRegisterFlag()
-        if (writeOnRegister) {
+        val stall = mem_wb.getStallSignal()
+        if (writeOnRegister && !stall) {
             val data = stageWriteBack.getWriteBackData()
             val writeAddress = mem_wb.getRFWriteAddress()
 
@@ -103,7 +115,7 @@ class StageDecode {
         }
     }
 
-    private fun fillIDEXRegister(instruction: InstructionModel) {
+    private fun fillIDEXRegister() {
         val nextPC = if_id.getNextPC()
         id_ex.storeNextPC(nextPC)
         //separate op code
@@ -140,7 +152,6 @@ class StageDecode {
                 RFWritePortSource.DataMemoryOutPut
         )
         //store instruction
-        val instruction = if_id.getInstruction()
         id_ex.storeInstruction(instruction)
     }
 

@@ -29,6 +29,7 @@ class IDEXRegister {
         private var rfWriteAddress_IN = 0
         private var rfWritePortSource_IN = RFWritePortSource.AluResult
         private var instruction_IN = stallInstruction
+        private var stallSignal_IN = false
 
         private var registerWrite_OUT = false
         private var memoryWrite_OUT = false
@@ -43,6 +44,7 @@ class IDEXRegister {
         private var rfWriteAddress_OUT = 0
         private var rfWritePortSource_OUT = RFWritePortSource.AluResult
         private var instruction_OUT = stallInstruction
+        private var stallSignal_OUT = true
     }
 
     fun activateRegister(clock: StateFlow<Int>) {
@@ -69,6 +71,7 @@ class IDEXRegister {
         rfWriteAddress_OUT = rfWriteAddress_IN
         rfWritePortSource_OUT = rfWritePortSource_IN
         instruction_OUT = instruction_IN
+        stallSignal_OUT = stallSignal_IN
 
         colored {
             println("ID/EX on clock $clock ; instIN:${instruction_IN.id}".bold)
@@ -149,5 +152,11 @@ class IDEXRegister {
     }
 
     fun getInstruction() = instruction_OUT
+
+    fun storeStallSignal(stall: Boolean) {
+        stallSignal_IN = stall
+    }
+
+    fun getStallSignal() = stallSignal_OUT
 }
 

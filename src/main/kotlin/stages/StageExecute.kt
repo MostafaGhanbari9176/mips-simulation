@@ -76,6 +76,9 @@ class StageExecute {
         //specify write port source
         val writePortSource = id_ex.getWritePortSource()
         ex_mem.storeRegisterWritePortSource(writePortSource)
+        //store stall signal
+        val stallSignal = id_ex.getStallSignal()
+        ex_mem.storeStallSignal(stallSignal)
     }
 
     private fun generateZeroFlag() {

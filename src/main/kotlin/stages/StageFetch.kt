@@ -18,10 +18,10 @@ class StageFetch {
     companion object {
         private var PC: Int = 0
         private val instructionMemory = mutableListOf<InstructionModel>()
-        private var stall = false
+        private var disablePC = false
     }
 
-    fun activatePC(clock:StateFlow<Int>){
+    fun activatePC(clock: StateFlow<Int>) {
         CoroutineScope(IO).launch {
             clock.collect { i ->
                 fetchFromInstructionMemory(i)
@@ -29,14 +29,14 @@ class StageFetch {
         }
     }
 
-    private fun fetchFromInstructionMemory(clock:Int) {
+    private fun fetchFromInstructionMemory(clock: Int) {
         if_id.activateRegister(clock)
 
-        var instruction = instructionMemory[PC]
+        val instruction = instructionMemory[PC]
         if (checkForLastInst(instruction.inst))
             return
 
-        if (!stall) {
+        if (!disablePC) {
             colored {
                 println("fetch instruction:${instruction.id} on clock:$clock".red.bold)
             }
@@ -44,9 +44,6 @@ class StageFetch {
                 PCSource.NextPC -> ++PC
                 PCSource.Branch -> ex_mem.getBranchAddress()
             }
-        } else{
-            stall = false
-            instruction = stallInstruction
         }
 
         //fill IF/ID register
@@ -56,12 +53,12 @@ class StageFetch {
         }
     }
 
-    fun injectStall() {
-        stall = true
+    fun disablePC(dis: Boolean) {
+        disablePC = dis
     }
 
     private fun checkForLastInst(instruction: String): Boolean {
-        val isLastIns =  instruction.all { c -> c == '1' }
+        val isLastIns = instruction.all { c -> c == '1' }
 
         programIsEnd = true
 

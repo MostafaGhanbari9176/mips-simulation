@@ -19,19 +19,21 @@ class IFIDRegister {
 
         private var nextPC_OUT: Int = 0
         private var instruction_OUT = stallInstruction
+
+        private var disable = false
     }
 
     fun activateRegister(i: Int) {
         //CoroutineScope(IO).launch {
-         //   clock.collect {i->
-                copyInputToOutPut(i)
-
-                stageDecode.decodeInstruction(i)
-       //     }
-       // }
+        //   clock.collect {i->
+        if (!disable)
+            copyInputToOutPut(i)
+        stageDecode.decodeInstruction(i)
+        //     }
+        // }
     }
 
-    private fun copyInputToOutPut(clock:Int) {
+    private fun copyInputToOutPut(clock: Int) {
         nextPC_OUT = nextPC_IN
         instruction_OUT = instruction_IN
 
@@ -51,5 +53,9 @@ class IFIDRegister {
     fun getInstruction() = instruction_OUT
 
     fun getNextPC() = nextPC_OUT
+
+    fun disable(dis: Boolean) {
+        disable = dis
+    }
 
 }
