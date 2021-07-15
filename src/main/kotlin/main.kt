@@ -1,8 +1,6 @@
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.IO
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import model.ALUOperator
 import pipline_registers.EXMEMRegister
 import pipline_registers.IDEXRegister
@@ -28,6 +26,7 @@ val ex_mem = EXMEMRegister()
 val mem_wb = MEMWBRegister()
 
 private var aluOperator: ALUOperator = ALUOperator.Add
+var beq: Boolean = false
 
 fun main(args: Array<String>) {
     colored {
@@ -41,10 +40,12 @@ private fun showMenu() {
     println("1- Set Clock Length(not implemented!)")
     println("2- Run A Simple Program For Testing ALU Operators")
     println("3- Run A Simple Program For Testing Jump (True Result => 1030)")
+    println("4- Run A Simple Program For Testing BEQ (Taken => 200, NotTaken => 300)")
+    println("5- Run A Simple Program For Testing BNE (Taken => 200, NotTaken => 300)")
 
     val input = readLine()
 
-    if (validateSelectedMenu(input, 1..3, ::showMenu)) {
+    if (validateSelectedMenu(input, 1..5, ::showMenu)) {
         when (input!!.toInt()) {
             1 -> {
                 showClockLengthMenu()
@@ -53,6 +54,14 @@ private fun showMenu() {
                 showTableOneInstructionsMenu()
             }
             3 -> startJumpTest()
+            4 -> {
+                beq = true
+                readOperands(::startBranchTest)
+            }
+            5 -> {
+                beq = false
+                readOperands(::startBranchTest)
+            }
         }
     }
 }
@@ -91,7 +100,7 @@ private fun showTableOneInstructionsMenu() {
         else if (input.toInt() > 5)
             readITypeOperand()
         else
-            readOperands()
+            readOperands(::startTestALUProgram)
     }
 }
 
@@ -100,7 +109,7 @@ private fun readITypeOperand() {
     println("Please Inter One Operand (Immediate Value => 10)")
     println("Or Inter exit")
 
-    var input = readLine()
+    val input = readLine()
 
     if (input == "exit") {
         showMenu()
@@ -113,7 +122,7 @@ private fun readITypeOperand() {
         startTestALUProgram(input.toInt(), input.toInt())
 }
 
-private fun readOperands() {
+private fun readOperands(targetFunction:(d1:Int, d2:Int) -> Unit) {
     println(".".repeat(30))
     println("Please Inter Operands And separate with 'o' Like 5o7")
     println("Or Inter exit")
@@ -132,14 +141,14 @@ private fun readOperands() {
             val data1 = (input as java.lang.String).substring(0, separatorIndex).toInt()
             val data2 = input.substring(separatorIndex).toInt()
 
-            startTestALUProgram(data1, data2)
+            targetFunction(data1, data2)
 
             return
         }
     }
 
     println("Input Is Not Valid")
-    readOperands()
+    readOperands(targetFunction)
 
 }
 
@@ -151,6 +160,12 @@ private fun startTestALUProgram(data1: Int, data2: Int) {
 
 private fun startJumpTest(){
     stageFetch.loadJumpTestInstruction()
+    turnON()
+}
+
+private fun startBranchTest(data1: Int, data2: Int){
+    stageMemory.loadDataMemory(data1, data2)
+    stageFetch.loadBranchTestInstruction(beq)
     turnON()
 }
 

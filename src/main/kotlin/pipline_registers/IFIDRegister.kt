@@ -25,14 +25,18 @@ class IFIDRegister {
         private var disable = false
     }
 
+    fun activateRegister(clock: StateFlow<Int>) {
+        CoroutineScope(IO).launch {
+            clock.collect { i ->
+                activateRegister(i)
+            }
+        }
+    }
+
     fun activateRegister(i: Int) {
-        //CoroutineScope(IO).launch {
-        //   clock.collect {i->
         if (!disable)
             copyInputToOutPut(i)
         stageDecode.decodeInstruction(i)
-        //     }
-        // }
     }
 
     private fun copyInputToOutPut(clock: Int) {

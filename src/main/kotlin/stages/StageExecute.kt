@@ -4,6 +4,7 @@ import ex_mem
 import id_ex
 import model.ALUOperator
 import model.ALUSource
+import model.PCSource
 import utils.*
 
 class StageExecute {
@@ -11,15 +12,14 @@ class StageExecute {
     private var operandOne = 0
     private var operandTwo = 0
 
-    fun executeInstruction(clock:Int) {
+    fun executeInstruction(clock: Int) {
         val programISEnd = id_ex.getEndSignal()
         ex_mem.storeEndSignal(programISEnd)
-        if(programISEnd)
+        if (programISEnd)
             return
         readOperands(clock)
         checkInstructionType(clock)
-        generateZeroFlag()
-        generateBranchAddress()
+        checkForBranch()
         fillExMEMRegister()
     }
 
@@ -49,12 +49,28 @@ class StageExecute {
         ex_mem.storeALUResult(address)
     }
 
-    private fun generateBranchAddress() {
-        val nextPc = id_ex.getNextPC()
-        val immediate = id_ex.getImmediateData()
-        val branchAddress = immediate * 4 + nextPc
+    private fun checkForBranch() {
+        ex_mem.storePCSource(PCSource.NextPC)
 
-        ex_mem.storeBranchAddress(branchAddress)
+        if (id_ex.getIsBranchFlag()) {
+            ex_mem.storeIsBranchFlag(true)
+            val zeroFlag = ((operandOne - operandTwo) == 0)
+            val opCode = id_ex.getInstruction().inst.substring(26, 32)
+
+            if((zeroFlag && opCode == "000100") || (!zeroFlag && opCode == "000101")){
+                ex_mem.storeBranchIsTookFlag(true)
+                val nextPc = id_ex.getNextPC()
+                val immediate = id_ex.getImmediateData()
+
+                val branchTarget = immediate + nextPc
+
+                ex_mem.storePCSource(PCSource.Branch)
+                ex_mem.storeBranchTarget(branchTarget)
+            }else
+                ex_mem.storeBranchIsTookFlag(false)
+
+        }else
+            ex_mem.storeIsBranchFlag(false)
     }
 
     private fun fillExMEMRegister() {
@@ -64,9 +80,6 @@ class StageExecute {
         //store register write address
         val rfWriteAddress = id_ex.getRFWriteAddress()
         ex_mem.storeRFWriteAddress(rfWriteAddress)
-        //specify is branch flag
-        val isBranch = id_ex.getIsBranchFlag()
-        ex_mem.storeIsBranchFlag(isBranch)
         //specify memory write flag
         val memoryWrite = id_ex.getMemWriteFlag()
         ex_mem.storeMemWriteFlag(memoryWrite)
@@ -84,12 +97,7 @@ class StageExecute {
         ex_mem.storeStallSignal(stallSignal)
     }
 
-    private fun generateZeroFlag() {
-        val zeroFlag = (operandOne - operandTwo) == 0
-        ex_mem.storeZeroFlag(zeroFlag)
-    }
-
-    private fun applyOperator(clock:Int) {
+    private fun applyOperator(clock: Int) {
         val function = id_ex.getALUOperator()
 
         val result = when (function) {
@@ -103,13 +111,13 @@ class StageExecute {
                 0
             else -> -11
         }
-        colored{
+        colored {
             println("ALU Result:$result $operandOne${function.name}$operandTwo inst:${id_ex.getInstruction().id} clock:$clock".green.bold.reverse)
         }
         ex_mem.storeALUResult(result)
     }
 
-    private fun readOperands(clock:Int) {
+    private fun readOperands(clock: Int) {
         operandOne = id_ex.getReadPortOneDataOfRF()
         val aluSource = id_ex.getAluSource()
         operandTwo = when (aluSource) {

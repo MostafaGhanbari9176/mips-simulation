@@ -35,26 +35,27 @@ class StageFetch {
 
         if_id.activateRegister(clock)
 
-        val instruction = instructionMemory[PC]
+        checkForBranch()
 
-        if (!disablePC) {
-            colored {
-                println("fetch instruction:${instruction.id} on clock:$clock".red.bold)
-            }
-            PC = when (getPCSource()) {
-                PCSource.NextPC -> ++PC
-                PCSource.Branch -> ex_mem.getBranchAddress()
-            }
+        val instruction = instructionMemory[PC]
+        colored {
+            println("fetch instruction:${instruction.id} on clock:$clock".red.bold)
         }
 
-        //fill IF/ID register
-        if_id.apply {
-            storeNextPC(PC)
-            storeInstruction(instruction)
+        if (!disablePC) {
+            ++PC
+            //fill IF/ID register
+            if_id.apply {
+                storeNextPC(PC)
+                storeInstruction(instruction)
+            }
         }
     }
 
-    fun disablePC(dis: Boolean) {
+    fun disablePC(dis: Boolean, instID: Int) {
+        colored {
+            println("DisablePC:$dis inst:$instID".bold.reverse)
+        }
         disablePC = dis
     }
 
@@ -62,14 +63,18 @@ class StageFetch {
         programIsEnd = true
     }
 
-    private fun getPCSource(): PCSource {
-        val isBranch = ex_mem.getIsBranchFlag()
-        val zeroFlag = ex_mem.getZeroFlag()
+    private fun checkForBranch() {
+        val pcSource = ex_mem.getPCSource()
+        if (pcSource == PCSource.Branch) {
+            val targetAddress = ex_mem.getBranchTarget()
+            colored {
+                println("(B)Change PC From:$PC To:$targetAddress".bold.red.reverse)
+            }
+            PC = targetAddress
+        }
 
-        return if (isBranch && zeroFlag)
-            PCSource.Branch
-        else
-            PCSource.NextPC
+        if(ex_mem.getIsBranchFlag())
+            disablePC(false, -2)
     }
 
     fun loadALUInstructions(aluOperator: ALUOperator) {
@@ -130,9 +135,34 @@ class StageFetch {
         )
     }
 
+    fun loadBranchTestInstruction(beq: Boolean) {
+        instructionMemory.clear()
+
+        val instructions = listOf<String>(
+            "10001100000010000000000000000000",
+            "10001100000010010000000000000001",
+            "10001100000011000000000000000001",
+            "10001100000011010000000000000001",
+            "10001100000011100000000000000001",
+            "10001100000011110000000000000001",
+            "${if (beq) "000100" else "000101"}01000010010000000000000001",
+            "00100000000010100000000001100100",
+            "00100001010010100000000011001000",
+            "10101100000010100000000000000010",
+            "11111111111111111111111111111111",
+            "11111111111111111111111111111111"
+        )
+
+        instructionMemory.addAll(
+            instructions.mapIndexed { index, inst ->
+                InstructionModel(inst, index)
+            }
+        )
+    }
+
     fun changePC(targetAddress: Int) {
         colored {
-            println("Change PC From:$PC To:$targetAddress".bold.red.reverse)
+            println("(J)Change PC From:$PC To:$targetAddress".bold.red.reverse)
         }
         PC = targetAddress
     }
