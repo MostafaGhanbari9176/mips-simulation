@@ -40,10 +40,11 @@ private fun showMenu() {
     println("Please Choose One")
     println("1- Set Clock Length(not implemented!)")
     println("2- Run A Simple Program For Testing ALU Operators")
+    println("3- Run A Simple Program For Testing Jump (True Result => 1030)")
 
     val input = readLine()
 
-    if (validateSelectedMenu(input, 1..2, ::showMenu)) {
+    if (validateSelectedMenu(input, 1..3, ::showMenu)) {
         when (input!!.toInt()) {
             1 -> {
                 showClockLengthMenu()
@@ -51,6 +52,7 @@ private fun showMenu() {
             2 -> {
                 showTableOneInstructionsMenu()
             }
+            3 -> startJumpTest()
         }
     }
 }
@@ -144,6 +146,15 @@ private fun readOperands() {
 private fun startTestALUProgram(data1: Int, data2: Int) {
     stageMemory.loadDataMemory(data1, data2)
     stageFetch.loadALUInstructions(aluOperator)
+    turnON()
+}
+
+private fun startJumpTest(){
+    stageFetch.loadJumpTestInstruction()
+    turnON()
+}
+
+private fun turnON(){
     stageFetch.activatePC(clock as StateFlow<Int>)
     activateRegisters()
     startClock()

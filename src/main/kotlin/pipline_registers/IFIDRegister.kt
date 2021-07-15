@@ -61,6 +61,12 @@ class IFIDRegister {
         disable = dis
     }
 
+    fun resetIFID() {
+        nextPC_IN = 0
+        instruction_IN = stallInstruction
+        endSignal_IN = false
+    }
+
 }
 
 

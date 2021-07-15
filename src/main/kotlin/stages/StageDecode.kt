@@ -19,7 +19,7 @@ class StageDecode {
     }
 
     fun decodeInstruction(clock: Int) {
-        if(checkForLastInst()){
+        if (checkForLastInst()) {
             stageFetch.programIsEnd(true)
             id_ex.storeEndSignal(true)
             return
@@ -28,30 +28,32 @@ class StageDecode {
         instruction = if_id.getInstruction()
         colored {
             println("decode instruction:${instruction.id} on clock:$clock".blue.bold)
-            println("inst:${instruction.id} clock:$clock pending registers:${registerFile.mapIndexed { index, model -> object {val pending = model.pending; val display = "$index : ${model.pendingInstructionId}"}   }.filter { f-> f.pending }.map { g -> g.display }  }".blue.reverse.bold)
+            println(
+                "inst:${instruction.id} clock:$clock pending registers:${
+                    registerFile.mapIndexed { index, model ->
+                        object {
+                            val pending = model.pending;
+                            val display = "$index : ${model.pendingInstructionId}"
+                        }
+                    }.filter { f -> f.pending }.map { g -> g.display }
+                }".blue.reverse.bold)
         }
+
+        //separate op code
+        val opCode = instruction.inst.substring(26, 32)
+
+        checkForJump(opCode)
+
         //separate operands address from instruction
         val readPortOneAddress = instruction.inst.substring(21, 26)
         val readPortTwoAddress = instruction.inst.substring(16, 21)
         //fetching operands value from register file
         val registerOne = registerFile[convertBinaryStringToUInt(readPortOneAddress)]
         val registerTwo = registerFile[convertBinaryStringToUInt(readPortTwoAddress)]
-        //separate op code
-        val opCode = instruction.inst.substring(26, 32)
 
-        if (registerOne.pending || (registerTwo.pending && (opCode == "000000" || opCode == "101011"))) {
-            colored {
-                println("inject stall for instruction: ${instruction.id} clock:$clock".bold.reverse)
-            }
-            stageFetch.disablePC(true)
-            if_id.disable(true)
-            id_ex.storeStallSignal(true)
-            instruction = stallInstruction
-        }else{
-            id_ex.storeStallSignal(false)
-            stageFetch.disablePC(false)
-            if_id.disable(false)
-        }
+        checkForDataHazard(registerOne, registerTwo, opCode, clock)
+
+        checkForControlHazard(opCode)
 
         //storing operands to pipeline register(ID/EX)
         id_ex.storeOperands(registerOne.data, registerTwo.data)
@@ -67,6 +69,47 @@ class StageDecode {
         fillIDEXRegister()
 
         //writeToRegister(clock)
+    }
+
+    private fun checkForJump(opCode: String) {
+        if(opCode == "000010"){
+            val _jTypeImm = instruction.inst.substring(0,26)
+            val jTypeImm = convertBinaryStringToInt(_jTypeImm)
+
+            val nextPC = if_id.getNextPC()
+
+            val targetAddress = (jTypeImm.toUInt() or (nextPC.toUInt() and 0xf0000000.toUInt())).toInt()
+
+            if_id.resetIFID()
+            stageFetch.changePC(targetAddress)
+            instruction = stallInstruction
+        }
+    }
+
+    private fun checkForControlHazard(opCode: String) {
+        val isBranch =
+        id_ex.storeIsBranchFlag(opCode == "000100" || opCode == "000101")
+    }
+
+    private fun checkForDataHazard(
+        registerOne: RegisterFileModel,
+        registerTwo: RegisterFileModel,
+        opCode: String,
+        clock: Int
+    ) {
+        if (registerOne.pending || (registerTwo.pending && (opCode == "000000" || opCode == "101011"))) {
+            colored {
+                println("(DH)inject stall for instruction: ${instruction.id} clock:$clock".bold.reverse)
+            }
+            stageFetch.disablePC(true)
+            if_id.disable(true)
+            id_ex.storeStallSignal(true)
+            instruction = stallInstruction
+        } else {
+            id_ex.storeStallSignal(false)
+            stageFetch.disablePC(false)
+            if_id.disable(false)
+        }
     }
 
     private fun checkForLastInst(): Boolean {
@@ -134,7 +177,12 @@ class StageDecode {
         //separate op code
         val opCode = instruction.inst.substring(26, 32)
         //specify ALU source
-        id_ex.storeALUSource(if (opCode == "000000") ALUSource.ReadPortTwoOFRF else ALUSource.Immediate)
+        id_ex.storeALUSource(
+            if (opCode == "000000" || opCode == "000100" || opCode == "000101")
+                ALUSource.ReadPortTwoOFRF
+            else
+                ALUSource.Immediate
+        )
 
         //specify ALU operator
         val functionCode = instruction.inst.substring(0, 6)
@@ -155,8 +203,6 @@ class StageDecode {
                 id_ex.storeALUOperator(ALUOperator.SLT)
         }
 
-        //specify branch instruction
-        id_ex.storeIsBranchFlag(opCode == "000100" || opCode == "000101")
         //specify lw instruction
         id_ex.storeMemReadFlag(opCode == "100011")
         //specify sw instruction(stall instruction id is -1)

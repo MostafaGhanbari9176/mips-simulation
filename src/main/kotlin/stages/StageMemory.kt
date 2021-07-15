@@ -7,7 +7,7 @@ import utils.*
 class StageMemory {
 
     companion object {
-        private val dataMemory = mutableListOf<Int>()
+        private val dataMemory = MutableList<Int>(1000){0}
     }
 
     fun applyMemWork(clock: Int, shutDownClock:() -> Unit) {
