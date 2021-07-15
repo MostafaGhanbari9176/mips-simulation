@@ -39,7 +39,7 @@ private fun showMenu() {
     println(".".repeat(30))
     println("Please Choose One")
     println("1- Set Clock Length(not implemented!)")
-    println("2- Run A Simple Program Base On Section One(Table One) Of Final Project")
+    println("2- Run A Simple Program For Testing ALU Operators")
 
     val input = readLine()
 
@@ -63,25 +63,52 @@ private fun showTableOneInstructionsMenu() {
     println("3- OR")
     println("4- And")
     println("5- SLT")
-    println("6- Main Menu")
+    println("6- AddI")
+    println("7- SltI")
+    println("8- AndI")
+    println("9- OrI")
+    println("10- Main Menu")
 
     val input = readLine()
 
-    if (validateSelectedMenu(input, 1..6, ::showTableOneInstructionsMenu)) {
+    if (validateSelectedMenu(input, 1..10, ::showTableOneInstructionsMenu)) {
         aluOperator = when (input!!.toInt()) {
             1 -> ALUOperator.Add
             2 -> ALUOperator.Sub
             3 -> ALUOperator.OR
             4 -> ALUOperator.And
             5 -> ALUOperator.SLT
-            else -> {
-                showMenu(); ALUOperator.SLT
-            }
+            6 -> ALUOperator.AddI
+            7 -> ALUOperator.SltI
+            8 -> ALUOperator.AndI
+            9 -> ALUOperator.OrI
+            else -> ALUOperator.None
         }
-
-        readOperands()
-
+        if (aluOperator == ALUOperator.None)
+            showMenu()
+        else if (input.toInt() > 5)
+            readITypeOperand()
+        else
+            readOperands()
     }
+}
+
+private fun readITypeOperand() {
+    println(".".repeat(30))
+    println("Please Inter One Operand (Immediate Value => 10)")
+    println("Or Inter exit")
+
+    var input = readLine()
+
+    if (input == "exit") {
+        showMenu()
+        return
+    }
+
+    if (input.isNullOrEmpty() || !isDigitOnly(input))
+        readITypeOperand()
+    else
+        startTestALUProgram(input.toInt(), input.toInt())
 }
 
 private fun readOperands() {
@@ -125,15 +152,15 @@ private fun startTestALUProgram(data1: Int, data2: Int) {
 private fun activateRegisters() {
     //if_id.activateRegister(clock as StateFlow<Int>)
     id_ex.activateRegister(clock as StateFlow<Int>)
-    ex_mem.activateRegister(clock as StateFlow<Int>){
-        timer?.cancel()
+    ex_mem.activateRegister(clock as StateFlow<Int>) {
         programIsEnd()
+        timer?.cancel()
     }
     mem_wb.activateRegister(clock as StateFlow<Int>)
 }
 
 private fun startClock() {
-    timer = fixedRateTimer(startAt = Calendar.getInstance().time, period = 100) {
+    timer = fixedRateTimer(startAt = Calendar.getInstance().time, period = 200) {
         ++clock.value
     }
 }
@@ -155,9 +182,12 @@ private fun showClockLengthMenu() {
 
 private fun programIsEnd() {
     val aluResult = stageMemory.readDataMEM(2)
-    println("=".repeat(35))
-    println("Program Is End")
-    println("ALU Result From MEM[2] : $aluResult")
+    colored {
+        println("=--=".repeat(15).yellow.bold.reverse)
+        println(" Program Is End ".yellow.bold.reverse)
+        println(" ALU Result From MEM[2] : $aluResult ".yellow.bold.reverse)
+        println("=--=".repeat(15).yellow.bold.reverse)
+    }
     // showMenu()
 }
 

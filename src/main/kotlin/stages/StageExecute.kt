@@ -16,7 +16,7 @@ class StageExecute {
         ex_mem.storeEndSignal(programISEnd)
         if(programISEnd)
             return
-        readOperands()
+        readOperands(clock)
         checkInstructionType(clock)
         generateZeroFlag()
         generateBranchAddress()
@@ -29,13 +29,12 @@ class StageExecute {
             println("execute instruction:${instruction.id} on clock:$clock".green.bold)
         }
         //separate op code
-        val _opCode = instruction.inst.substring(26, 32)
-        val opCode = convertBinaryStringToInt(_opCode)
+        val opCode = instruction.inst.substring(26, 32)
 
-        if (opCode == 0)
-            applyOperator()
-        else
+        if (opCode == "101011" || opCode == "100011")
             generateMemoryAddress()
+        else
+            applyOperator(clock)
 
         //store instruction
         ex_mem.storeInstruction(instruction)
@@ -90,10 +89,10 @@ class StageExecute {
         ex_mem.storeZeroFlag(zeroFlag)
     }
 
-    private fun applyOperator() {
-        val functioCode = id_ex.getALUOperator()
+    private fun applyOperator(clock:Int) {
+        val function = id_ex.getALUOperator()
 
-        val result = when (functioCode) {
+        val result = when (function) {
             ALUOperator.Add -> operandOne + operandTwo
             ALUOperator.Sub -> operandOne - operandTwo
             ALUOperator.OR -> operandOne or operandTwo
@@ -102,17 +101,30 @@ class StageExecute {
                 1
             else
                 0
+            else -> -11
         }
-
+        colored{
+            println("ALU Result:$result $operandOne${function.name}$operandTwo inst:${id_ex.getInstruction().id} clock:$clock".green.bold.reverse)
+        }
         ex_mem.storeALUResult(result)
     }
 
-    private fun readOperands() {
+    private fun readOperands(clock:Int) {
         operandOne = id_ex.getReadPortOneDataOfRF()
         val aluSource = id_ex.getAluSource()
         operandTwo = when (aluSource) {
-            ALUSource.Immediate -> id_ex.getImmediateData()
-            ALUSource.ReadPortTwoOFRF -> id_ex.getReadPortTwoDataOfRF()
+            ALUSource.Immediate -> {
+/*                colored{
+                    println("inst:${id_ex.getInstruction().id} clock:$clock ALUI1:$operandOne ALUI2:${id_ex.getImmediateData()} IMM".purple.bold.reverse)
+                }*/
+                id_ex.getImmediateData()
+            }
+            ALUSource.ReadPortTwoOFRF -> {
+/*                colored{
+                    println("inst:${id_ex.getInstruction().id} clock:$clock ALUI1:$operandOne ALUI2:${id_ex.getReadPortTwoDataOfRF()} RF".purple.bold.reverse)
+                }*/
+                id_ex.getReadPortTwoDataOfRF()
+            }
         }
     }
 

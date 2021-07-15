@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import model.InstructionModel
 import model.RFWritePortSource
+import stageDecode
 import utils.colored
 import utils.stallInstruction
 
@@ -34,6 +35,8 @@ class MEMWBRegister {
         CoroutineScope(Dispatchers.IO).launch {
             clock.collect { i ->
                 copyInputToOutPut(i)
+
+                stageDecode.writeToRegister(i)
             }
         }
     }

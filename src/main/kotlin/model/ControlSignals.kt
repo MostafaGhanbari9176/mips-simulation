@@ -10,7 +10,12 @@ enum class ALUOperator{
     Sub,
     OR,
     And,
-    SLT
+    SLT,
+    AddI,
+    SltI,
+    AndI,
+    OrI,
+    None
 }
 
 enum class RFWritePortSource{

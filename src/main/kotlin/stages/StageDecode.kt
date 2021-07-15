@@ -66,7 +66,7 @@ class StageDecode {
 
         fillIDEXRegister()
 
-        writeToRegister(clock)
+        //writeToRegister(clock)
     }
 
     private fun checkForLastInst(): Boolean {
@@ -107,7 +107,7 @@ class StageDecode {
         return writeAddress
     }
 
-    private fun writeToRegister(clock: Int) {
+    fun writeToRegister(clock: Int) {
         val writeOnRegister = mem_wb.getWritingOnRegisterFlag()
         val stall = mem_wb.getStallSignal()
         if (writeOnRegister && !stall) {
@@ -138,16 +138,20 @@ class StageDecode {
 
         //specify ALU operator
         val functionCode = instruction.inst.substring(0, 6)
-        when (functionCode) {
-            "100000" ->
+        when {
+            functionCode == "100000" || opCode == "001000" ->
                 id_ex.storeALUOperator(ALUOperator.Add)
-            "100010" ->
+
+            functionCode == "100010" ->
                 id_ex.storeALUOperator(ALUOperator.Sub)
-            "100101" ->
+
+            functionCode == "100101" || opCode == "001101" ->
                 id_ex.storeALUOperator(ALUOperator.OR)
-            "100100" ->
+
+            functionCode == "100100" || opCode == "001100" ->
                 id_ex.storeALUOperator(ALUOperator.And)
-            "101010" ->
+
+            functionCode == "101010" || opCode == "001010" ->
                 id_ex.storeALUOperator(ALUOperator.SLT)
         }
 
@@ -159,10 +163,10 @@ class StageDecode {
         id_ex.storeMemWriteFlag(opCode == "101011" && instruction.id != -1)
         //specify register write data source
         id_ex.storeRegisterWritePortSource(
-            if (opCode == "000000")
-                RFWritePortSource.AluResult
-            else
+            if (opCode == "100011")
                 RFWritePortSource.DataMemoryOutPut
+            else
+                RFWritePortSource.AluResult
         )
         //store instruction
         id_ex.storeInstruction(instruction)
