@@ -20,7 +20,7 @@ class StageDecode {
 
     fun decodeInstruction(clock: Int) {
         if (checkForLastInst()) {
-            stageFetch.programIsEnd(true)
+            stageFetch.programIsEnd()
             id_ex.storeEndSignal(true)
             return
         }
@@ -39,10 +39,7 @@ class StageDecode {
                 }".blue.reverse.bold)
         }
 
-        //separate op code
-        val opCode = instruction.inst.substring(26, 32)
-
-        checkForJump(opCode)
+        checkForJump(getOpCode())
 
         //separate operands address from instruction
         val readPortOneAddress = instruction.inst.substring(21, 26)
@@ -51,9 +48,9 @@ class StageDecode {
         val registerOne = registerFile[convertBinaryStringToUInt(readPortOneAddress)]
         val registerTwo = registerFile[convertBinaryStringToUInt(readPortTwoAddress)]
 
-        checkForDataHazard(registerOne, registerTwo, opCode, clock)
+        checkForDataHazard(registerOne, registerTwo,getOpCode(), clock)
 
-        checkForControlHazard(opCode, clock)
+        checkForControlHazard(getOpCode(), clock)
 
         //storing operands to pipeline register(ID/EX)
         id_ex.storeOperands(registerOne.data, registerTwo.data)
@@ -92,7 +89,7 @@ class StageDecode {
 
         if (isBranch) {
             colored {
-                println("Branch Detected(${if(opCode == "000101") "BNE" else "BEQ"}), PC is disable, IF/ID is reset clcok:$clock".bold)
+                println("Branch Detected(${if (opCode == "000101") "BNE" else "BEQ"}), PC is disable, IF/ID is reset clcok:$clock".bold)
             }
             stageFetch.disablePC(true, if_id.getInstruction().id)
             if_id.resetIFID()
@@ -114,10 +111,11 @@ class StageDecode {
             if_id.disable(true)
             id_ex.storeStallSignal(true)
             instruction = stallInstruction
-        } else if (instruction.id != -1 && opCode != "000100" && opCode != "000101") {
+        } else if (instruction.id != -1) {
             id_ex.storeStallSignal(false)
-            stageFetch.disablePC(false, if_id.getInstruction().id)
             if_id.disable(false)
+            if (opCode != "000100" && opCode != "000101")
+                stageFetch.disablePC(false, if_id.getInstruction().id)
         }
     }
 
@@ -133,7 +131,8 @@ class StageDecode {
         //separate op code
         val opCode = instruction.inst.substring(26, 32)
 
-        val thisWriteOnRF = opCode != "000010" && opCode != "000101" && opCode != "000100" && opCode != "101011" && instruction.id != -1
+        val thisWriteOnRF =
+            opCode != "000010" && opCode != "000101" && opCode != "000100" && opCode != "101011" && instruction.id != -1
         //specify writing instructions
         id_ex.storeWritingOnRegisterFlag(thisWriteOnRF)
 
@@ -225,6 +224,13 @@ class StageDecode {
         )
         //store instruction
         id_ex.storeInstruction(instruction)
+    }
+
+    private fun getOpCode(): String {
+        //separate op code
+        val opCode = instruction.inst.substring(26, 32)
+
+        return opCode
     }
 
 }
