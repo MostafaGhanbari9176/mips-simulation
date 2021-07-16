@@ -165,15 +165,21 @@ class StageFetch {
 
     /**
      * addi $t0, $t0, 1   #1
+    addi $t6, $zero, 32767
     lw $t5, 0($zero)  #length of array
     lw $t1, 1($t4) #0
     slt $t3, $t2, $t1 #   t2 < t1 -> t3 is set
     bne $t3, $t0, 1
     addi $t2, $t1, 0
+    slt $t3, $t1, $t6 #   t1 < t6 -> t3 is set
+    bne $t3, $t0, 1
+    addi $t6, $t1, 0
     addi $t4, $t4, 1  #counter
     beq $t4, $t5, 1
     j 2
     sw $t2, 2($t5)
+    sw $t6, 3($t5)
+
 
      */
     fun loadFinderProgram() {

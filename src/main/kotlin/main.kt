@@ -80,7 +80,7 @@ fun getNumbers() {
         return
     }
 
-    if (input.isNullOrEmpty() || !isDigitOnly(input, ';')) {
+    if (input.isNullOrEmpty() || !isDigitOnly(input, ';','-')) {
         getNumbers()
         return
     }
@@ -216,7 +216,7 @@ private fun activateRegisters() {
 }
 
 private fun startClock() {
-    timer = fixedRateTimer(startAt = Calendar.getInstance().time, period = 200) {
+    timer = fixedRateTimer(startAt = Calendar.getInstance().time, period = 20) {
         ++clock.value
     }
 }
@@ -243,6 +243,7 @@ private fun programIsEnd() {
         println(" Program Is End ".yellow.bold.reverse)
         println(" ALU Result From MEM[2] : $aluResult ".yellow.bold.reverse)
         println(" Result From MEM[${numbersCount + 2}] : ${stageMemory.readDataMEM(numbersCount + 2)} ".yellow.bold.reverse)
+        println(" Result From MEM[${numbersCount + 3}] : ${stageMemory.readDataMEM(numbersCount + 3)} ".yellow.bold.reverse)
         println("=--=".repeat(15).yellow.bold.reverse)
     }
     // showMenu()
@@ -266,8 +267,8 @@ private fun isDigitOnly(input: String): Boolean {
     return input.all { c -> c.isDigit() }
 }
 
-private fun isDigitOnly(input: String, additionChar:Char): Boolean {
-    return input.all { c -> c.isDigit() || c == additionChar }
+private fun isDigitOnly(input: String,vararg additionChar:Char): Boolean {
+    return input.all { c -> c.isDigit() || additionChar.contains(c) }
 }
 
 
