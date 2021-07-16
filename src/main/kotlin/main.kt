@@ -28,6 +28,8 @@ val mem_wb = MEMWBRegister()
 private var aluOperator: ALUOperator = ALUOperator.Add
 var beq: Boolean = false
 
+private var numbersCount = 0
+
 fun main(args: Array<String>) {
     colored {
         showMenu()
@@ -37,16 +39,17 @@ fun main(args: Array<String>) {
 private fun showMenu() {
     println(".".repeat(30))
     println("Please Choose One")
+    println("0- Find Big and Small Number")
     println("1- Set Clock Length(not implemented!)")
     println("2- Run A Simple Program For Testing ALU Operators")
     println("3- Run A Simple Program For Testing Jump (True Result => 1030)")
     println("4- Run A Simple Program For Testing BEQ (Taken => 200, NotTaken => 300)")
     println("5- Run A Simple Program For Testing BNE (Taken => 200, NotTaken => 300)")
-
     val input = readLine()
 
-    if (validateSelectedMenu(input, 1..5, ::showMenu)) {
+    if (validateSelectedMenu(input, 0..5, ::showMenu)) {
         when (input!!.toInt()) {
+            0 -> getNumbers()
             1 -> {
                 showClockLengthMenu()
             }
@@ -64,6 +67,26 @@ private fun showMenu() {
             }
         }
     }
+}
+
+fun getNumbers() {
+    println(".".repeat(30))
+    println("Please Inter Numbers And Separate With ';' Like 1;2;20")
+    println("Or Inter exit")
+    val input = readLine()
+
+    if (input == "exit") {
+        showMenu()
+        return
+    }
+
+    if (input.isNullOrEmpty() || !isDigitOnly(input, ';')) {
+        getNumbers()
+        return
+    }
+
+    val numbers = input.split(';').map { i -> i.toInt() }.toList()
+    startFinder(numbers)
 }
 
 private fun showTableOneInstructionsMenu() {
@@ -169,6 +192,13 @@ private fun startBranchTest(data1: Int, data2: Int){
     turnON()
 }
 
+private fun startFinder(data:List<Int>){
+    numbersCount = data.size
+    stageMemory.loadDataMemory(listOf<Int>(data.size).plus(data))
+    stageFetch.loadFinderProgram()
+    turnON()
+}
+
 private fun turnON(){
     stageFetch.activatePC(clock as StateFlow<Int>)
     activateRegisters()
@@ -212,6 +242,7 @@ private fun programIsEnd() {
         println("=--=".repeat(15).yellow.bold.reverse)
         println(" Program Is End ".yellow.bold.reverse)
         println(" ALU Result From MEM[2] : $aluResult ".yellow.bold.reverse)
+        println(" Result From MEM[${numbersCount + 2}] : ${stageMemory.readDataMEM(numbersCount + 2)} ".yellow.bold.reverse)
         println("=--=".repeat(15).yellow.bold.reverse)
     }
     // showMenu()
@@ -233,6 +264,10 @@ private fun validateSelectedMenu(input: String?, validRange: IntRange, menu: () 
 
 private fun isDigitOnly(input: String): Boolean {
     return input.all { c -> c.isDigit() }
+}
+
+private fun isDigitOnly(input: String, additionChar:Char): Boolean {
+    return input.all { c -> c.isDigit() || c == additionChar }
 }
 
 

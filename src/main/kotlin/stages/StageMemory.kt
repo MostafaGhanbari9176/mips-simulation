@@ -8,12 +8,12 @@ import utils.*
 class StageMemory {
 
     companion object {
-        private val dataMemory = MutableList<Int>(1000){0}
+        private val dataMemory = MutableList<Int>(1000) { 0 }
     }
 
-    fun applyMemWork(clock: Int, shutDownClock:() -> Unit) {
+    fun applyMemWork(clock: Int, shutDownClock: () -> Unit) {
         val programIsEnd = ex_mem.getEndSignal()
-        if(programIsEnd) {
+        if (programIsEnd) {
             shutDownClock()
             return
         }
@@ -64,21 +64,27 @@ class StageMemory {
             colored {
                 println("MEM[$memAddress]<=$data on clock:$clock ; inst:${ex_mem.getInstruction().id}".purple.bold)
             }
-            if (memAddress > dataMemory.size - 1)
+/*            if (memAddress > dataMemory.size - 1)
                 dataMemory.add(memAddress, data)
-            else
-                dataMemory[memAddress] = data
+            else*/
+            dataMemory[memAddress] = data
         }
     }
 
     fun loadDataMemory(vararg datas: Int) {
-        dataMemory.clear()
+        datas.forEachIndexed { index, data ->
+            dataMemory.add(index, data)
+        }
+    }
 
-        datas.forEach { data ->
-            dataMemory.add(data)
+    fun loadDataMemory(datas: List<Int>) {
+        datas.forEachIndexed { index, data ->
+            dataMemory.add(index, data)
         }
     }
 
     fun readDataMEM(address: Int) = dataMemory[address]
+
+    fun readLastMem() = dataMemory.last()
 
 }

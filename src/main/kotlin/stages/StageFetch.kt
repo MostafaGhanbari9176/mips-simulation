@@ -163,5 +163,43 @@ class StageFetch {
         PC = targetAddress
     }
 
+    /**
+     * addi $t0, $t0, 1   #1
+    lw $t5, 0($zero)  #length of array
+    lw $t1, 1($t4) #0
+    slt $t3, $t2, $t1 #   t2 < t1 -> t3 is set
+    bne $t3, $t0, 1
+    addi $t2, $t1, 0
+    addi $t4, $t4, 1  #counter
+    beq $t4, $t5, 1
+    j 2
+    sw $t2, 2($t5)
+
+     */
+    fun loadFinderProgram() {
+        instructionMemory.clear()
+
+        val instructions = listOf<String>(
+            "00100001000010000000000000000001",
+            "10001100000011010000000000000000",
+            "10001101100010010000000000000001",
+            "00000001010010010101100000101010",
+            "00010101011010000000000000000001",
+            "00100001001010100000000000000000",
+            "00100001100011000000000000000001",
+            "00010001100011010000000000000001",
+            "00001000000000000000000000000010",
+            "10101101101010100000000000000010",
+            "11111111111111111111111111111111",
+            "11111111111111111111111111111111"
+        )
+
+        instructionMemory.addAll(
+            instructions.mapIndexed { index, inst ->
+                InstructionModel(inst, index)
+            }
+        )
+    }
+
 }
 
